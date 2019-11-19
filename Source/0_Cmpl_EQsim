@@ -1,9 +1,0 @@
-mpicc 	EQsim_StrainHS_v2.c       \
-        EQsim_main_v2.c           \
-        EQsim_LoadInput_v2.c      \
-        EQsim_Build_Kmatrix_v2.c  \
-        -Wall  -lm -O3 -funroll-loops -o  EQsim
-	    
-	    
-		
-
