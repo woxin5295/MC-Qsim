@@ -1,0 +1,9 @@
+mpicc 	MCQsim_StrainHS_v2.c       \
+        MCQsim_main_v2.c           \
+        MCQsim_LoadInput_v2.c      \
+        MCQsim_Build_Kmatrix_v2.c  \
+        -Wall  -lm -O3 -funroll-loops -o  EQsim
+	    
+	    
+		
+
