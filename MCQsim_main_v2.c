@@ -33,14 +33,14 @@ int main(int argc, char **argv)
     MPI_Offset offset1; /*this stuff here is for file output*/
     MPI_Offset offset2; /*this stuff here is for file output*/
     /*-------------------------------------------------------------------*/
-    int 	iOFFSET_F[iSIZE];	    for (i = 0; i < iSIZE; i++)             		{       iOFFSET_F[i]    = 0;                              }
+    int 	iOFFSET_F[iSIZE];	for (i = 0; i < iSIZE; i++)             		{       iOFFSET_F[i]    = 0;                              }
     int 	iSTARTPOS_F[iSIZE];     for (i = 0; i < iSIZE; i++)         			{       iSTARTPOS_F[i]  = 0;                              }
-    int 	iOFFSET_B[iSIZE];		for (i = 0; i < iSIZE; i++)             		{       iOFFSET_B[i]    = 0;                              }
+    int 	iOFFSET_B[iSIZE];		for (i = 0; i < iSIZE; i++)             	{       iOFFSET_B[i]    = 0;                              }
     int 	iSTARTPOS_B[iSIZE];     for (i = 0; i < iSIZE; i++)         			{       iSTARTPOS_B[i]  = 0;                              }
     /*-------------------------------------------------------------------*/
-  	unsigned int 	iUsdGrid,			iWrteKinMod,			iDeltT2Use,             iUsePostSeismic,        iRealizNum;
-    float        	fKinModMinMag,      fRecLgth;
-    char            *retch;
+    unsigned int iUsdGrid,	     iWrteKinMod,     iDeltT2Use,       iUsePostSeismic,        iRealizNum;
+    float        fKinModMinMag,      fRecLgth;
+    char         *retch;
     /*----------------------------*/
     sscanf(argv[2],"%u",  &iRealizNum);
   	sscanf(argv[3],"%u",  &iUsdGrid);    						sscanf(argv[4],"%u",  &iDeltT2Use);	                        
@@ -57,10 +57,10 @@ int main(int argc, char **argv)
       argv[7] this is length of record (in years)
 	*/  
     /*-------------------------------------------------------------------*/
-    unsigned int 	iFltSegmNum,		iFltGridNum,		iFltPtchNum,			    iFltVertNum; 
+    unsigned int    iFltSegmNum,	iFltGridNum,	    iFltPtchNum,                iFltVertNum; 
     unsigned int    iBndSegmNum,        iBndGridNum,        iBndPtchNum,                iBndVertNum;
     unsigned int    iCmbPtchNum,        iCmbVertNum;
-    float  			fMeanLegLgth,		fMeanBndLegLgth,    fDummy;
+    float  	    fMeanLegLgth,	fMeanBndLegLgth,    fDummy;
     float           *fSD_SlipRate,      *fSD_SlipRake,      *fSD_StrssRate;
   	
   	char			ctempVals[512],		cFile1_In[512],		cFile2_In[512],             cFile1_Out[512];   /* out1 is for the overall catalog; out2 is the stf for each patch that had slip => both are binaries!!!  	*/
