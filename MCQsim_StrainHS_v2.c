@@ -23,7 +23,7 @@ void    AngSetupFSC_S_inStrnHS(double Stress1[6],double Strain1[6], double X,dou
 void  AngDisStrainFSC_inStrnHS(double y1, double y2, double y3, double beta, double b1, double b2, double b3, double nu, double a, double Strain[6]);
 
 
-void StrainHS_Nikkhoo(float Stress[6], float Strain[6], float fX, float fY, float fZ, float fP1[3], float fP2[3], float fP3[3], float fSs, float fDs, float fTs, float fmu, float flambda)
+void StrainHS_Nikkhoo(float Stress[6], float Strain[6], float fX, float fY, float fZ, float fP1[3], float fP2[3], float fP3[3], float fSs, float fDs, float fTs, const float fmu, const float flambda)
 
 /*
 this function is translated by Olaf Zielke from Matlab to C
@@ -180,7 +180,7 @@ void TDstressFS_inStrnHS(double StsMS[6], double StrMS[6],  double X, double Y, 
     
     int      TriMode[1];      
     double   tempVect1[3],   tempVect2[3];
-    double   p1[3],          p2[3],			 p3[3];              
+    double   p1[3],          p2[3],                p3[3];              
     double   e12[3],         e13[3],         e23[3];                 
     double   e_vals1[6],     e_vals2[6],     e_vals3[6],     e_comb[6];
     double   Amat[3][3];
@@ -192,34 +192,34 @@ void TDstressFS_inStrnHS(double StsMS[6], double StrMS[6],  double X, double Y, 
 
     /* Calculate unit strike, dip and normal to TD vectors: For a horizontal TD as an exception, if the normal vector points upward, the strike and dip */
     /* vectors point Northward and Westward, whereas if the normal vector points downward, the strike and dip vectors point Southward and Westward, respectively. */
-    double eY[3],					eZ[3];
-    double Vnorm[3],				Vstrike[3],				Vdip[3];
+    double eY[3],                         eZ[3];
+    double Vnorm[3],                    Vstrike[3],                    Vdip[3];
     
     eY[0]        = 0.0;                     eY[1]        = 1.0;                     eY[2]        = 0.0;
     eZ[0]        = 0.0;                     eZ[1]        = 0.0;                     eZ[2]        = 1.0;    
 
-	tempVect1[0] = P2[0] -P1[0];            tempVect1[1] = P2[1] -P1[1];            tempVect1[2] = P2[2] -P1[2];
+     tempVect1[0] = P2[0] -P1[0];            tempVect1[1] = P2[1] -P1[1];            tempVect1[2] = P2[2] -P1[2];
     tempVect2[0] = P3[0] -P1[0];            tempVect2[1] = P3[1] -P1[1];            tempVect2[2] = P3[2] -P1[2];
       
     Vnorm[0]     = tempVect1[1]*tempVect2[2] - tempVect1[2]*tempVect2[1];
     Vnorm[1]     = tempVect1[2]*tempVect2[0] - tempVect1[0]*tempVect2[2];
     Vnorm[2]     = tempVect1[0]*tempVect2[1] - tempVect1[1]*tempVect2[0];
-    Tempdouble    = sqrt(  Vnorm[0]*Vnorm[0] +Vnorm[1]*Vnorm[1] + Vnorm[2]*Vnorm[2]);
+    Tempdouble   = sqrt(  Vnorm[0]*Vnorm[0] +Vnorm[1]*Vnorm[1] + Vnorm[2]*Vnorm[2]);
 
     Vnorm[0]     = Vnorm[0]/Tempdouble;     Vnorm[1]     = Vnorm[1]/Tempdouble;     Vnorm[2]     = Vnorm[2]/Tempdouble;
 
-	Vstrike[0]   = eZ[1]*Vnorm[2] - eZ[2]*Vnorm[1];
+     Vstrike[0]  = eZ[1]*Vnorm[2] - eZ[2]*Vnorm[1];
     Vstrike[1]   = eZ[2]*Vnorm[0] - eZ[0]*Vnorm[2];
     Vstrike[2]   = eZ[0]*Vnorm[1] - eZ[1]*Vnorm[0];
     /* For horizontal elements ("Vnorm(3)" adjusts for Northward or Southward direction) */
     Tempdouble    = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
-	if (Tempdouble == 0.0)
+     if (Tempdouble == 0.0)
     {   Vstrike[0] = 0.0 ;                  Vstrike[1] = eY[1]*Vnorm[2];            Vstrike[2]   = 0.0;        
         /* For horizontal elements in case of half-space calculation!!! => Correct the strike vector of image dislocation only */
         if (P1[2] > 0.0)
         {   Vstrike[0] = -1.0*Vstrike[0];   Vstrike[1] = -1.0*Vstrike[1];           Vstrike[2]   = -1.0*Vstrike[2];
     }   }
-	Tempdouble    = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
+     Tempdouble    = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
 
     Vstrike[0]   = Vstrike[0]/Tempdouble;  Vstrike[1] = Vstrike[1]/Tempdouble;     Vstrike[2]   = Vstrike[2]/Tempdouble;
 
@@ -336,13 +336,13 @@ void TDstress_HarFunc_inStrnHS(double StsFSC[6], double StrFSC[6], double X, dou
 
     /* Calculate unit strike, dip and normal to TD vectors: For a horizontal TD as an exception, if the normal vector points upward, the strike and dip  */
     /* vectors point Northward and Westward, whereas if the normal vector points downward, the strike and dip vectors point Southward and Westward, respectively. */
-    double Tempdouble,				eY[3],					eZ[3];
-    double Vnorm[3],				    Vstrike[3],				Vdip[3];
+    double Tempdouble,                    eY[3],                         eZ[3];
+    double Vnorm[3],                        Vstrike[3],                    Vdip[3];
     
     eY[0]        = 0.0;                     eY[1]        = 1.0;                     eY[2]        = 0.0;
     eZ[0]        = 0.0;                     eZ[1]        = 0.0;                     eZ[2]        = 1.0;    
 
-	tempVect1[0] = P2[0] -P1[0];            tempVect1[1] = P2[1] -P1[1];            tempVect1[2] = P2[2] -P1[2];
+     tempVect1[0] = P2[0] -P1[0];            tempVect1[1] = P2[1] -P1[1];            tempVect1[2] = P2[2] -P1[2];
     tempVect2[0] = P3[0] -P1[0];            tempVect2[1] = P3[1] -P1[1];            tempVect2[2] = P3[2] -P1[2];
       
     Vnorm[0]     = tempVect1[1]*tempVect2[2] - tempVect1[2]*tempVect2[1];
@@ -352,15 +352,15 @@ void TDstress_HarFunc_inStrnHS(double StsFSC[6], double StrFSC[6], double X, dou
 
     Vnorm[0]     = Vnorm[0]/Tempdouble;     Vnorm[1]     = Vnorm[1]/Tempdouble;     Vnorm[2]     = Vnorm[2]/Tempdouble;
 
-	Vstrike[0]   = eZ[1]*Vnorm[2] - eZ[2]*Vnorm[1];
+     Vstrike[0]   = eZ[1]*Vnorm[2] - eZ[2]*Vnorm[1];
     Vstrike[1]   = eZ[2]*Vnorm[0] - eZ[0]*Vnorm[2];
     Vstrike[2]   = eZ[0]*Vnorm[1] - eZ[1]*Vnorm[0];
     /* For horizontal elements ("Vnorm(3)" adjusts for Northward or Southward direction) */
     Tempdouble    = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
-	if (Tempdouble == 0.0)
+     if (Tempdouble == 0.0)
     {   Vstrike[0] = 0.0;                  Vstrike[1] = eY[1]*Vnorm[2];          Vstrike[2]   = 0.0;        
     }
-	Tempdouble     = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
+     Tempdouble     = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
 
     Vstrike[0]    = Vstrike[0]/Tempdouble;  Vstrike[1] = Vstrike[1]/Tempdouble;     Vstrike[2]   = Vstrike[2]/Tempdouble;
 
@@ -565,17 +565,17 @@ void    AngSetupFSC_S_inStrnHS(double Stress[6],double Strain[6], double X,doubl
             AngDisStrainFSC_inStrnHS(yB[0],yB[1], yB[2], beta,TempVect2[0],TempVect2[1], TempVect2[2], nu,(-1.0*PB[2]), v1B);
         }
         /* Calculate total Free Surface Correction to strains in ADCS */
-    	for (i = 0; i < 6; i++)         {           v_vals[i] = v1B[i] - v1A[i];            }
-		
-    	/* Transform total Free Surface Correction to strains from ADCS to EFCS */
-    	TensTrans_inStrnHS(Strain, v_vals, A_t);
-			
-    	Stress[0] = 2.0*mu*Strain[0] +lambda*(Strain[0] +Strain[3] +Strain[5]); /* sig_xx */
-   	 	Stress[3] = 2.0*mu*Strain[3] +lambda*(Strain[0] +Strain[3] +Strain[5]); /* sig_yy */
-    	Stress[5] = 2.0*mu*Strain[5] +lambda*(Strain[0] +Strain[3] +Strain[5]); /* sig_zz */
-    	Stress[1] = 2.0*mu*Strain[1]; /* sig_xy */
-    	Stress[2] = 2.0*mu*Strain[2]; /* sig_xz */
-     	Stress[4] = 2.0*mu*Strain[4]; /* sig_yz */
+         for (i = 0; i < 6; i++)         {           v_vals[i] = v1B[i] - v1A[i];            }
+          
+         /* Transform total Free Surface Correction to strains from ADCS to EFCS */
+         TensTrans_inStrnHS(Strain, v_vals, A_t);
+               
+         Stress[0] = 2.0*mu*Strain[0] +lambda*(Strain[0] +Strain[3] +Strain[5]); /* sig_xx */
+              Stress[3] = 2.0*mu*Strain[3] +lambda*(Strain[0] +Strain[3] +Strain[5]); /* sig_yy */
+         Stress[5] = 2.0*mu*Strain[5] +lambda*(Strain[0] +Strain[3] +Strain[5]); /* sig_zz */
+         Stress[1] = 2.0*mu*Strain[1]; /* sig_xy */
+         Stress[2] = 2.0*mu*Strain[2]; /* sig_xz */
+          Stress[4] = 2.0*mu*Strain[4]; /* sig_yz */
     }
     return;
 }
@@ -642,8 +642,8 @@ void  AngDisStrainFSC_inStrnHS(double y1, double y2, double y3, double beta, dou
     double rFib_ry3,     v11,            v12,            v13,        v22;
     double v23,          v33;
     
-    double powrb3,       powcotB2,		powW62,			powy12,		powW72;
-    double powy22,		 powrb22,		powy13,			powrb5,		powy23;
+    double powrb3,       powcotB2,          powW62,               powy12,          powW72;
+    double powy22,           powrb22,          powy13,               powrb5,          powy23;
     double powcosB2,     tmtnu,         arbW6,          y1sinB,     rbsinB;
     double mtptnu,       omW5,          W5mo,           y3brb1,     omnu;
      
@@ -660,10 +660,10 @@ void  AngDisStrainFSC_inStrnHS(double y1, double y2, double y3, double beta, dou
     rFib_ry1 =       y2/rb/(rb+y3b) -cosB*y2/rb/(rb+z3b); /* y1 = y in ADCS */
     rFib_ry3 = -sinB*y2/rb/(rb+z3b);                      /* y3 = z in ADCS */
  
-    powrb3   = rb*rb*rb;				    powcotB2 = cotB*cotB;				        powW62   = W6*W6;
-    powy12   = y1*y1;			        	powW72   = W7*W7;					        powy22   = y2*y2;
-    powrb22  = rb2*rb2;			            powy13   = y1*y1*y1;					    powrb5   = rb*rb*rb*rb*rb;
-    powy23   = y2*y2*y2;				    powcosB2 = cosB*cosB;                       y1sinB   = (y1/rb-sinB);
+    powrb3   = rb*rb*rb;                        powcotB2 = cotB*cotB;                            powW62   = W6*W6;
+    powy12   = y1*y1;                            powW72   = W7*W7;                                 powy22   = y2*y2;
+    powrb22  = rb2*rb2;                           powy13   = y1*y1*y1;                             powrb5   = rb*rb*rb*rb*rb;
+    powy23   = y2*y2*y2;                        powcosB2 = cosB*cosB;                       y1sinB   = (y1/rb-sinB);
     
    
     tmtnu   = (2.0-nu-nu);                  arbW6    = (a/rb2+1.0/W6);                  rbsinB   = (rb*sinB-y1);
