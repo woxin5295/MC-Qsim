@@ -144,6 +144,7 @@ this function is translated by Olaf Zielke from Matlab to C
     
     if ((Z > 0.0) || (P1[2] > 0.0) || (P2[2] > 0.0) || (P3[2] > 0.0))
     {   fprintf(stdout,"A triangle vertex or the center of testing location have positive z-position (above half-space) => abort\n");           
+        fprintf(stdout,"Z: %f    P1[2]: %f    P2[2]: %f      P3[2]: %f   \n",Z, P1[2], P2[2],P3[2]);       
         exit(10);
     }
     if ((P1[2] == 0.0) && (P2[2] == 0.0) && (P3[2] == 0.0))
@@ -514,8 +515,8 @@ void    AngSetupFSC_S_inStrnHS(double Stress[6],double Strain[6], double X,doubl
     TempVal1   = sqrt( SideVec[0]*SideVec[0] +SideVec[1]*SideVec[1] +SideVec[2]*SideVec[2]);
     TempVal2   = -1.0*(SideVec[0]*eZ[0]      +SideVec[1]*eZ[1]      +SideVec[2]*eZ[2]);    
     beta       = acos(TempVal2/TempVal1);
+ //   if (fabs(cos(beta)/sin(beta)) > 1.0e+4*M_PI/360.0) 
     if (fabs(cos(beta)/sin(beta)) > 5.0e+5*M_PI/360.0)
-    
    // if ((fabs(beta) < eps) || (fabs(M_PI-beta)< eps))
     {   for (i = 0; i < 6; i++)         {       Stress[i] = 0.0;        Strain[i] = 0.0;            } 
     }
