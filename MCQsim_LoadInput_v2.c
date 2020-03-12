@@ -136,8 +136,7 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
         {   iTDg_V1[iFltPtchNum+i]      += iFltVertNum; /*so that the vertices of the boundary-patches don't overlap with the fault! */
             iTDg_V2[iFltPtchNum+i]      += iFltVertNum;
             iTDg_V3[iFltPtchNum+i]      += iFltVertNum;       
-        }
-    }
+    }   }
     /*---------------------------------------------------------------------------------*/
     for (i = 0; i < (iFltVertNum + iBndVertNum); i++)            
     {   fVDg_Epos[i]     *= 1000.0;             fVDg_Npos[i]     *= 1000.0;         fVDg_Zpos[i]     *= 1000.0; 
@@ -155,6 +154,7 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
         fTDl_SlipRate[i]        = fSD_SlipRate[iTDl_SegID[i]];
         fTDl_SlipRake[i]        = fSD_SlipRake[iTDl_SegID[i]];
         fTDl_CurrFric[i]        = fTDl_StatFric[i];
+   //     fprintf(stdout, "%d  ",iTDl_StabType[i]);
     }
     /*---------------------------------------------------------------------------------*/
     return;
@@ -193,9 +193,10 @@ void  DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSE
         /*---------------------------------------------------------------------------------*/
         fTDl_Area[i]         = 0.5*sqrtf( fP1P2crossP1P3[0]*fP1P2crossP1P3[0] +fP1P2crossP1P3[1]*fP1P2crossP1P3[1] +fP1P2crossP1P3[2]*fP1P2crossP1P3[2]);
         /*---------------------------------------------------------------------------------*/
+        
         fTDl_Curr_DcVal[i]   = fSD_CritSlipDist[iTDl_SegID[i]] *(1.0 + (fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_CritSlipD_vari[iTDl_SegID[i]]/100.0  );  
         iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     } //this respawns new position of randPos somewhere in range of zero to randnumber-1     
-        /*---------------------------------------------------------------------------------*/
+                /*---------------------------------------------------------------------------------*/
         for (j = 0; j < iFltPtchNum;  j++)
         {   iVectPos                 = i*iFltPtchNum + j;
             fTempP                   = sqrtf( (fTDg_CentEpos[globi]-fTDg_CentEpos[j])*(fTDg_CentEpos[globi]-fTDg_CentEpos[j]) + (fTDg_CentNpos[globi]-fTDg_CentNpos[j])*(fTDg_CentNpos[globi]-fTDg_CentNpos[j]) + (fTDg_CentZpos[globi]-fTDg_CentZpos[j])*(fTDg_CentZpos[globi]-fTDg_CentZpos[j]) )/fMD_Vp[0]; /* the distance between both */
@@ -204,67 +205,69 @@ void  DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSE
             iTDlg_TravTimesP[iVectPos] = (int)(fTempP/fdeltTincr);
             iTDlg_TravTimesS[iVectPos] = (int)(fTempS/fdeltTincr);
             /*---------------------------------------------------------------------------------*/
-            iMD_GlobTTmax[0]        = (iMD_GlobTTmax[0] > iTDlg_TravTimesS[iVectPos]) ? iMD_GlobTTmax[0] : iTDlg_TravTimesS[iVectPos];     
+            iMD_GlobTTmax[0]         = (iMD_GlobTTmax[0] > iTDlg_TravTimesS[iVectPos]) ? iMD_GlobTTmax[0] : iTDlg_TravTimesS[iVectPos];     
             /*---------------------------------------------------------------------------------*/
             fSrcRcvVect[0]           = fTDg_CentEpos[j] - fTDg_CentEpos[globi]; /*this is vector from current patch (source) to receiver*/
             fSrcRcvVect[1]           = fTDg_CentNpos[j] - fTDg_CentNpos[globi]; 
             fSrcRcvVect[2]           = fTDg_CentZpos[j] - fTDg_CentZpos[globi];
-            fTemp                    = sqrtf(fSrcRcvVect[0]*fSrcRcvVect[0] +fSrcRcvVect[1]*fSrcRcvVect[1] +fSrcRcvVect[2]*fSrcRcvVect[2]);
-            if (fTemp > FLT_EPSILON)
-            {   fSrcRcvVect[0]          /= fTemp;                fSrcRcvVect[1] /= fTemp;                fSrcRcvVect[2] /= fTemp; 
+            
+            if (j == globi)
+            {   fTDlg_LocSrcRcv_N[iVectPos]    = 0.0;       fTDlg_LocSrcRcv_H[iVectPos]    = 0.0;        fTDlg_LocSrcRcv_V[iVectPos]    = 0.0;
+            }
+            else
+            {   fTemp                    = sqrtf(fSrcRcvVect[0]*fSrcRcvVect[0] +fSrcRcvVect[1]*fSrcRcvVect[1] +fSrcRcvVect[2]*fSrcRcvVect[2]);
+                fSrcRcvVect[0]          /= fTemp;                fSrcRcvVect[1] /= fTemp;                fSrcRcvVect[2] /= fTemp; 
                 /*---------------------------------------------------------------------------------*/                    
                 fTDlg_LocSrcRcv_N[iVectPos]    = fvNrm[0]*fSrcRcvVect[0] + fvNrm[1]*fSrcRcvVect[1] + fvNrm[2]*fSrcRcvVect[2]; /*this rotates the vector from current source to receiver*/
                 fTDlg_LocSrcRcv_H[iVectPos]    = fvStk[0]*fSrcRcvVect[0] + fvStk[1]*fSrcRcvVect[1] + fvStk[2]*fSrcRcvVect[2]; /*into local coordinate system (that is the idea...)*/
-                fTDlg_LocSrcRcv_V[iVectPos]    = fvDip[0]*fSrcRcvVect[0] + fvDip[1]*fSrcRcvVect[1] + fvDip[2]*fSrcRcvVect[2];
-                /*---------------------------------------------------------------------------------*/
-            }
-            else
-            {   fTDlg_LocSrcRcv_N[iVectPos]    = 0.0;       fTDlg_LocSrcRcv_H[iVectPos]    = 0.0;        fTDlg_LocSrcRcv_V[iVectPos]    = 0.0;
-            }                    
-    }   }
+                fTDlg_LocSrcRcv_V[iVectPos]    = fvDip[0]*fSrcRcvVect[0] + fvDip[1]*fSrcRcvVect[1] + fvDip[2]*fSrcRcvVect[2];                
+    }   }   }
     /*---------------------------------------------------------------------------------*/
     return;
 }
-
-
+/*---------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------------*/
 void GetLocKOS_inLoadInput(float fvNrm[3], float fvStk[3], float fvDip[3], const float fP1[3], const float fP2[3], const float fP3[3])
-{   /* this comes basically from Medhii's code... */
+{    /* this comes basically from Medhii's code... */
     float fTempfloat;
     float ftempVect1[3],         ftempVect2[3];  
     float feY[3],                feZ[3];
-
+    /*-----------------------------------------------*/  
     feY[0] = 0.0;                              feY[1] = 1.0;                              feY[2] = 0.0;
-    feZ[0] = 0.0;                              feZ[1] = 0.0;                              feZ[2] = 1.0;    
-
+    feZ[0] = 0.0;                              feZ[1] = 0.0;                              feZ[2] = 1.0;        
     ftempVect1[0] = fP2[0] -fP1[0];            ftempVect1[1] = fP2[1] -fP1[1];            ftempVect1[2] = fP2[2] -fP1[2];
     ftempVect2[0] = fP3[0] -fP1[0];            ftempVect2[1] = fP3[1] -fP1[1];            ftempVect2[2] = fP3[2] -fP1[2];
-      
+    /*-----------------------------------------------*/  
     fvNrm[0]      = ftempVect1[1]*ftempVect2[2] - ftempVect1[2]*ftempVect2[1];
     fvNrm[1]      = ftempVect1[2]*ftempVect2[0] - ftempVect1[0]*ftempVect2[2];
     fvNrm[2]      = ftempVect1[0]*ftempVect2[1] - ftempVect1[1]*ftempVect2[0];
     fTempfloat    = sqrtf(fvNrm[0]*fvNrm[0] +fvNrm[1]*fvNrm[1] +fvNrm[2]*fvNrm[2]);
     fvNrm[0]      = fvNrm[0]/fTempfloat;      fvNrm[1]     = fvNrm[1]/fTempfloat;      fvNrm[2]     = fvNrm[2]/fTempfloat;
-
+    
+    if (fvNrm[2] < 0.0)     {   fvNrm[0] = -fvNrm[0];            fvNrm[1] = -fvNrm[1];            fvNrm[2] = -fvNrm[2];     }
+    /*-----------------------------------------------*/  
     fvStk[0]      = feZ[1]*fvNrm[2] - feZ[2]*fvNrm[1];
     fvStk[1]      = feZ[2]*fvNrm[0] - feZ[0]*fvNrm[2];
     fvStk[2]      = feZ[0]*fvNrm[1] - feZ[1]*fvNrm[0];
     /* For horizontal elements ("Vnorm(3)" adjusts for Northward or Southward direction) */
     fTempfloat    = sqrtf(fvStk[0]*fvStk[0] +fvStk[1]*fvStk[1] +fvStk[2]*fvStk[2]);
-    if (fTempfloat < FLT_EPSILON)
-    {   fvStk[0] = feY[0]*fvNrm[2];         fvStk[1] = feY[1]*fvNrm[2];             fvStk[2] = feY[2]*fvNrm[2];        
+    if (fTempfloat < 0.0)
+    {   fvStk[0] = 0.0;                 fvStk[1] = feY[1]*fvNrm[2];                 fvStk[2] = 0.0;        
         /* For horizontal elements in case of half-space calculation!!! => Correct the strike vector of image dislocation only */
-        if (fP1[2] > FLT_EPSILON)
-        {   fvStk[0] = -1.0*fvStk[0];       fvStk[1] = -1.0*fvStk[1];               fvStk[2] = -1.0*fvStk[2];
+        if (fP1[2] > 0.0)
+        {   fvStk[0] = -fvStk[0];       fvStk[1] = -fvStk[1];                       fvStk[2] = -fvStk[2];
     }   }
     fTempfloat  = sqrtf(fvStk[0]*fvStk[0] +fvStk[1]*fvStk[1] +fvStk[2]*fvStk[2]);
     fvStk[0]    = fvStk[0]/fTempfloat;      fvStk[1] = fvStk[1]/fTempfloat;         fvStk[2] = fvStk[2]/fTempfloat;
-
+    /*-----------------------------------------------*/  
     fvDip[0]    = fvNrm[1]*fvStk[2] - fvNrm[2]*fvStk[1];
     fvDip[1]    = fvNrm[2]*fvStk[0] - fvNrm[0]*fvStk[2];
     fvDip[2]    = fvNrm[0]*fvStk[1] - fvNrm[1]*fvStk[0];
     fTempfloat  = sqrtf(fvDip[0]*fvDip[0] +fvDip[1]*fvDip[1] +fvDip[2]*fvDip[2]);
     fvDip[0]    = fvDip[0]/fTempfloat;      fvDip[1] = fvDip[1]/fTempfloat;         fvDip[2] = fvDip[2]/fTempfloat;
-
+    /*-----------------------------------------------*/  
     return;
 }
 

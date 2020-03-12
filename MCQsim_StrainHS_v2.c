@@ -199,7 +199,7 @@ void TDstressFS_inStrnHS(double StsMS[6], double StrMS[6],  double X, double Y, 
     eY[0]        = 0.0;                     eY[1]        = 1.0;                     eY[2]        = 0.0;
     eZ[0]        = 0.0;                     eZ[1]        = 0.0;                     eZ[2]        = 1.0;    
 
-     tempVect1[0] = P2[0] -P1[0];            tempVect1[1] = P2[1] -P1[1];            tempVect1[2] = P2[2] -P1[2];
+    tempVect1[0] = P2[0] -P1[0];            tempVect1[1] = P2[1] -P1[1];            tempVect1[2] = P2[2] -P1[2];
     tempVect2[0] = P3[0] -P1[0];            tempVect2[1] = P3[1] -P1[1];            tempVect2[2] = P3[2] -P1[2];
       
     Vnorm[0]     = tempVect1[1]*tempVect2[2] - tempVect1[2]*tempVect2[1];
@@ -209,7 +209,7 @@ void TDstressFS_inStrnHS(double StsMS[6], double StrMS[6],  double X, double Y, 
 
     Vnorm[0]     = Vnorm[0]/Tempdouble;     Vnorm[1]     = Vnorm[1]/Tempdouble;     Vnorm[2]     = Vnorm[2]/Tempdouble;
 
-     Vstrike[0]  = eZ[1]*Vnorm[2] - eZ[2]*Vnorm[1];
+    Vstrike[0]   = eZ[1]*Vnorm[2] - eZ[2]*Vnorm[1];
     Vstrike[1]   = eZ[2]*Vnorm[0] - eZ[0]*Vnorm[2];
     Vstrike[2]   = eZ[0]*Vnorm[1] - eZ[1]*Vnorm[0];
     /* For horizontal elements ("Vnorm(3)" adjusts for Northward or Southward direction) */
@@ -353,7 +353,7 @@ void TDstress_HarFunc_inStrnHS(double StsFSC[6], double StrFSC[6], double X, dou
 
     Vnorm[0]     = Vnorm[0]/Tempdouble;     Vnorm[1]     = Vnorm[1]/Tempdouble;     Vnorm[2]     = Vnorm[2]/Tempdouble;
 
-     Vstrike[0]   = eZ[1]*Vnorm[2] - eZ[2]*Vnorm[1];
+    Vstrike[0]   = eZ[1]*Vnorm[2] - eZ[2]*Vnorm[1];
     Vstrike[1]   = eZ[2]*Vnorm[0] - eZ[0]*Vnorm[2];
     Vstrike[2]   = eZ[0]*Vnorm[1] - eZ[1]*Vnorm[0];
     /* For horizontal elements ("Vnorm(3)" adjusts for Northward or Southward direction) */
@@ -515,8 +515,7 @@ void    AngSetupFSC_S_inStrnHS(double Stress[6],double Strain[6], double X,doubl
     TempVal1   = sqrt( SideVec[0]*SideVec[0] +SideVec[1]*SideVec[1] +SideVec[2]*SideVec[2]);
     TempVal2   = -1.0*(SideVec[0]*eZ[0]      +SideVec[1]*eZ[1]      +SideVec[2]*eZ[2]);    
     beta       = acos(TempVal2/TempVal1);
- //   if (fabs(cos(beta)/sin(beta)) > 1.0e+4*M_PI/360.0) 
-    if (fabs(cos(beta)/sin(beta)) > 5.0e+5*M_PI/360.0)
+    if (fabs(cos(beta)/sin(beta)) > 5.0e+5*(M_PI/360.0))
    // if ((fabs(beta) < eps) || (fabs(M_PI-beta)< eps))
     {   for (i = 0; i < 6; i++)         {       Stress[i] = 0.0;        Strain[i] = 0.0;            } 
     }
