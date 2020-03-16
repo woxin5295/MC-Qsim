@@ -121,9 +121,11 @@ int main(int argc, char **argv)
         if (iBndGridNum < 1)                             {   fprintf(stdout,"Error -boundary fault file was opened but BC faults are not meshed/gridded. \n");      exit(10);     }
         retch =fgets(ctempVals, 512, fpIn);                  sscanf(ctempVals,"%*s %d  %d", &iBndPtchNum,     &iBndVertNum);
         retch =fgets(ctempVals, 512, fpIn);                  sscanf(ctempVals,"%*s %e  %e", &fMeanBndLegLgth, &fDummy);
+        
+        fclose(fpIn);
     }
     fMeanBndLegLgth *= 1.0E+3; /* now it is in meters */
-    fclose(fpIn);
+    
     /*----------------------------------------------------------------------------------*/  
     fMeanBndLegLgth = (fMeanBndLegLgth <=      0.0    ) ? fMeanLegLgth : fMeanBndLegLgth; /*set BndLegLength to MeanLegLgth if BndLegLength is equal or smaller than 0.0*/
     fMeanLegLgth    = (fMeanBndLegLgth >= fMeanLegLgth) ? fMeanLegLgth : fMeanBndLegLgth; /*set MeanLegLength to be min value of LegLength and BndLegLength*/
@@ -143,8 +145,7 @@ int main(int argc, char **argv)
     if (iPrintAll > 0)
     {   fprintf(stdout,"My Rank: %d  TriNum %d    BASEelem  %d   ADDelem  %d  STARTPOS  %d OFFSET   %d; start: %d     end: %d\n",iRANK, iFltPtchNum, iBASEelem_F, iADDelem_F, iSTARTPOS_F[iRANK], iOFFSET_F[iRANK], iSTARTPOS_F[iRANK],  (iSTARTPOS_F[iRANK]+iOFFSET_F[iRANK])  );  
     }
-    
-    
+
     int    iEQcounter      = 0,                 iMaxMRFlength  = 10000; 
     float  fMD_UnitSlip   = 1.0E-4*fMeanLegLgth; /* slip in meter => if meanleglength is 1000m, then a slip of .1m is used */
     float  fMD_g           = 9.81,              fViscosity     = 2.0E+15; /* in Pa seconds; value doesn't seem right, but need something that corresponds to patch stiffness => to give proper char. time scale for post-seismic decay*/ 
@@ -176,7 +177,7 @@ int main(int argc, char **argv)
     float  *fMD_Poisson;               fMD_Poisson              = (float *)  calloc(1, sizeof(float));
     float  *fMD_Lambda;                fMD_Lambda               = (float *)  calloc(1, sizeof(float));
     float  *fMD_MedDense;              fMD_MedDense             = (float *)  calloc(1, sizeof(float));
-    float  *fMD_CritSlipVelo;          fMD_CritSlipVelo         = (float *)  calloc(1, sizeof(float));    
+    //float  *fMD_CritSlipVelo;          fMD_CritSlipVelo         = (float *)  calloc(1, sizeof(float));    
     int    *iMD_ChgFricBtwEQs;         iMD_ChgFricBtwEQs        = (int   *)  calloc(1, sizeof( int));  
     int    *iMD_GlobTTmax;             iMD_GlobTTmax            = (int   *)  calloc(1, sizeof( int));    
     /*-------------------------------------------------------------------*/ 
@@ -358,6 +359,7 @@ int main(int argc, char **argv)
     iMaxSTFLength  = iMD_GlobTTmax[0] +1;
     if (iRANK == 0)            {         fprintf(stdout,"MaxSTFlength =  %d\n",  iMaxSTFLength);    }
     
+
     float *fTDlg_STF_H;        fTDlg_STF_H       = (float *)  calloc(iOFFSET_F[iRANK]*iMaxSTFLength, sizeof(float)); 
     float *fTDlg_STF_V;        fTDlg_STF_V       = (float *)  calloc(iOFFSET_F[iRANK]*iMaxSTFLength, sizeof(float));     
     /*-------------------------------------------------------------------*/  
@@ -435,7 +437,6 @@ int main(int argc, char **argv)
     free(fK_BB_SS);         free(fK_BB_DD);         free(fK_BB_OO);        
     free(iMD_GlobTTmax);  
 
-    MPI_Barrier( MPI_COMM_WORLD );
     /*-------------------------------------------------------------------*/
     MPI_File_delete(cFile1_Out, MPI_INFO_NULL);
     MPI_File_open(MPI_COMM_WORLD, cFile1_Out, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
@@ -619,10 +620,9 @@ int main(int argc, char **argv)
                             if      ((iTDl_StabType[i] != 3) && (fTDl_CurrFric[i] < fTDl_DynFric[i]))     {      fTDl_CurrFric[i] =  fTDl_DynFric[i];     }
                             else if ((iTDl_StabType[i] == 3) && (fTDl_CurrFric[i] > fTDl_DynFric[i]))     {      fTDl_CurrFric[i] =  fTDl_DynFric[i];     }    
                     }   }
-                    //else
-                    //{   STFcnt    = 0;   
-                    
-                    //}
+                    else
+                    {   STFcnt    = 0;   
+                    }
                     /*-------------------------------------------------------*/
                     /* determine amount of excess stress (if any available) and the corresponding slip amount */
                     fTemp  = sqrtf(fTDl_CurStrss_H[i]*fTDl_CurStrss_H[i] + fTDl_CurStrss_V[i]*fTDl_CurStrss_V[i]);  /* this is the applied shear stress*/
@@ -646,14 +646,14 @@ int main(int argc, char **argv)
                             fTDlg_STF_V[i*iMaxSTFLength+iwritePos] = -1.0*(fTemp2/fTemp *fTDl_CurStrss_V[i]) /fK_FF_DD[iTDl_SelfLoc_F[i]]; /* the "-1" is here because the stiffness matrix stuff gives the amount of slip nessessary to MAKE the observed stress; but I want to RELEASE it => opposite direction */
                             fTDl_EventSlipH[i]                    += fTDlg_STF_H[i*iMaxSTFLength+iwritePos];                
                             fTDl_EventSlipV[i]                    += fTDlg_STF_V[i*iMaxSTFLength+iwritePos];   
-                        }
+                        
+                            if (iEQ_MRFlength[0] < iMaxMRFlength) /*write out the moment-rate-function, but only to a maximum of maxMRFlength => can still do the earthquake but cutoff the MRF...*/
+                            {   fEQ_MRFvals[iEQ_TotalRuptT[0]]    += sqrtf(fTDlg_STF_H[i*iMaxSTFLength+iwritePos]*fTDlg_STF_H[i*iMaxSTFLength+iwritePos] +fTDlg_STF_V[i*iMaxSTFLength+iwritePos]*fTDlg_STF_V[i*iMaxSTFLength+iwritePos])*fTDl_Area[i] *fMD_ShearMod[0];
+                        }   }
                         else /*seems unnecessary to add here if fTemp2 is zero -but is! necessary -even if it is to set that position to be zero!*/
-                        {   fTDlg_STF_H[i*iMaxSTFLength+iwritePos] = 0.0; /* it is necessary b/c that position would remain its previous value, and I am looping over this stuff => would reuse previous slip amount */
+                        {   iwritePos  = STFcnt%iMaxSTFLength; /*gives me remainder of wPos/MaxSTFlength => allows me to loop/overwrite the STF vectors */
+                            fTDlg_STF_H[i*iMaxSTFLength+iwritePos] = 0.0; /* it is necessary b/c that position would remain its previous value, and I am looping over this stuff => would reuse previous slip amount */
                             fTDlg_STF_V[i*iMaxSTFLength+iwritePos] = 0.0;
-                        }
-                        if (iEQ_MRFlength[0] < iMaxMRFlength) /*write out the moment-rate-function, but only to a maximum of maxMRFlength => can still do the earthquake but cutoff the MRF...*/
-                        {
-                            fEQ_MRFvals[iEQ_TotalRuptT[0]]        += sqrtf(fTDlg_STF_H[i*iMaxSTFLength+iwritePos]*fTDlg_STF_H[i*iMaxSTFLength+iwritePos] +fTDlg_STF_V[i*iMaxSTFLength+iwritePos]*fTDlg_STF_V[i*iMaxSTFLength+iwritePos]);
                     }   }
                     /*---------------------------------------------------------*/
                     /* determine modified stress due to slip on fault patches */
@@ -672,20 +672,20 @@ int main(int argc, char **argv)
                                 if (fTemp > FLT_EPSILON)
                                 { 
                                    if (i+iSTARTPOS_F[iRANK] == j)
-                                    {   fUsedStkSlip   = fStkSlip; /*this part here is actually a really cool step; fTemp is length of slip amount in direction of source-receiver vector (can be negative)*/
-                                        fUsedDipSlip   = fDipSlip;
-                                        fUsedNrmSlip   = 0.0;
+                                    {   fUsedStkSlip        = fStkSlip; /*this part here is actually a really cool step; fTemp is length of slip amount in direction of source-receiver vector (can be negative)*/
+                                        fUsedDipSlip        = fDipSlip;
+                                        fTDg_DeltStrssH[j] += fUsedStkSlip*fK_FF_SS[iVectPos] +fUsedDipSlip*fK_FF_DS[iVectPos];
+                                        fTDg_DeltStrssV[j] += fUsedStkSlip*fK_FF_SD[iVectPos] +fUsedDipSlip*fK_FF_DD[iVectPos];
                                     }
                                     else
-                                    {   fTemp          = fStkSlip*fTDlg_LocSrcRcv_H[iVectPos] + fDipSlip*fTDlg_LocSrcRcv_V[iVectPos]; 
-                                        fUsedStkSlip   = fTDlg_LocSrcRcv_H[iVectPos]*fTemp; /*this part here is actually a really cool step; fTemp is length of slip amount in direction of source-receiver vector (can be negative)*/
-                                        fUsedDipSlip   = fTDlg_LocSrcRcv_V[iVectPos]*fTemp; /*this "length" is multiplied with local orientation of source-receiver vector to get the transient slip values to be used...*/
-                                        fUsedNrmSlip   = fTDlg_LocSrcRcv_N[iVectPos]*fTemp;
-                                    }
-                                    fTDg_DeltStrssH[j] += fUsedStkSlip*fK_FF_SS[iVectPos] +fUsedDipSlip*fK_FF_DS[iVectPos] +fUsedNrmSlip*fK_FF_OS[iVectPos];
-                                    fTDg_DeltStrssV[j] += fUsedStkSlip*fK_FF_SD[iVectPos] +fUsedDipSlip*fK_FF_DD[iVectPos] +fUsedNrmSlip*fK_FF_OD[iVectPos];
-                                    fTDg_DeltStrssN[j] += fUsedStkSlip*fK_FF_SO[iVectPos] +fUsedDipSlip*fK_FF_DO[iVectPos] +fUsedNrmSlip*fK_FF_OO[iVectPos];   
-                            }   }                      
+                                    {   fTemp               = fStkSlip*fTDlg_LocSrcRcv_H[iVectPos] + fDipSlip*fTDlg_LocSrcRcv_V[iVectPos]; 
+                                        fUsedStkSlip        = fTDlg_LocSrcRcv_H[iVectPos]*fTemp; /*this part here is actually a really cool step; fTemp is length of slip amount in direction of source-receiver vector (can be negative)*/
+                                        fUsedDipSlip        = fTDlg_LocSrcRcv_V[iVectPos]*fTemp; /*this "length" is multiplied with local orientation of source-receiver vector to get the transient slip values to be used...*/
+                                        fUsedNrmSlip        = fTDlg_LocSrcRcv_N[iVectPos]*fTemp;
+                                        fTDg_DeltStrssH[j] += fUsedStkSlip*fK_FF_SS[iVectPos] +fUsedDipSlip*fK_FF_DS[iVectPos] +fUsedNrmSlip*fK_FF_OS[iVectPos];
+                                        fTDg_DeltStrssV[j] += fUsedStkSlip*fK_FF_SD[iVectPos] +fUsedDipSlip*fK_FF_DD[iVectPos] +fUsedNrmSlip*fK_FF_OD[iVectPos];
+                                        fTDg_DeltStrssN[j] += fUsedStkSlip*fK_FF_SO[iVectPos] +fUsedDipSlip*fK_FF_DO[iVectPos] +fUsedNrmSlip*fK_FF_OO[iVectPos];   
+                            }   }   }                      
                             iTDlg_Pdone[iVectPos] = (STFcnt - iTDlg_TravTimesP[iVectPos]) >= 0 ? (STFcnt - iTDlg_TravTimesP[iVectPos]+1) : 0;        
                             /*---------------------------------------------------------*/                
                             for (stfpos = iTDlg_Sdone[iVectPos]; stfpos <= (STFcnt - iTDlg_TravTimesS[iVectPos]); stfpos++) /*2nd part is negative if signal has not arrived, then the loop is skipped*/
@@ -696,10 +696,10 @@ int main(int argc, char **argv)
                                 fTemp    = sqrt(fStkSlip*fStkSlip + fDipSlip*fDipSlip);                                
                                 if (fTemp > FLT_EPSILON)
                                 {   if ((i + iSTARTPOS_F[iRANK]) != j)    /*this should be at "self" location -> then I cannot use the src-rcv-vector b/c it is zero...*/         
-                                    {   fTemp         = fStkSlip*fTDlg_LocSrcRcv_H[iVectPos] + fDipSlip*fTDlg_LocSrcRcv_V[iVectPos]; 
-                                        fUsedStkSlip  = fStkSlip - fTDlg_LocSrcRcv_H[iVectPos]*fTemp; /*subtract the P-direction (as above) from the actual slip vector => this gives the S-velocity component*/
-                                        fUsedDipSlip  = fDipSlip - fTDlg_LocSrcRcv_V[iVectPos]*fTemp; 
-                                        fUsedNrmSlip  =    0.0   - fTDlg_LocSrcRcv_N[iVectPos]*fTemp; 
+                                    {   fTemp               = fStkSlip*fTDlg_LocSrcRcv_H[iVectPos] + fDipSlip*fTDlg_LocSrcRcv_V[iVectPos]; 
+                                        fUsedStkSlip        = fStkSlip - fTDlg_LocSrcRcv_H[iVectPos]*fTemp; /*subtract the P-direction (as above) from the actual slip vector => this gives the S-velocity component*/
+                                        fUsedDipSlip        = fDipSlip - fTDlg_LocSrcRcv_V[iVectPos]*fTemp; 
+                                        fUsedNrmSlip        =    0.0   - fTDlg_LocSrcRcv_N[iVectPos]*fTemp; 
                                                                            
                                         fTDg_DeltStrssH[j] += fUsedStkSlip*fK_FF_SS[iVectPos] +fUsedDipSlip*fK_FF_DS[iVectPos] +fUsedNrmSlip*fK_FF_OS[iVectPos];
                                         fTDg_DeltStrssV[j] += fUsedStkSlip*fK_FF_SD[iVectPos] +fUsedDipSlip*fK_FF_DD[iVectPos] +fUsedNrmSlip*fK_FF_OD[iVectPos];
@@ -723,9 +723,10 @@ int main(int argc, char **argv)
                 /*---------------------------------------------------------------*/
                 if (iEQ_EQongoing[0] == 0) /* make sure that all the signal is out of the system => even if no slip occurred in last step on any patch; there may still be stress in the system that has not reached a receiver => wait until they all got their share */
                 {   
-                    iEQ_EQongoing[0]   = 1;                       iEQ_EQEndCntr[0] = iEQ_EQEndCntr[0] +1;
-                    if (iEQ_EQEndCntr[0] >= iMaxSTFLength)    {   iEQ_EQongoing[0] = 0;                             }   
+                    iEQ_EQongoing[0]   = 1;                       iEQ_EQEndCntr[0]  = iEQ_EQEndCntr[0] +1;
+                    if (iEQ_EQEndCntr[0] >= iMaxSTFLength)    {   iEQ_EQongoing[0]  = 0;                            }   
                 }
+                else                                          {    iEQ_EQEndCntr[0] = 0;                            }
                 MPI_Allreduce(MPI_IN_PLACE, iEQ_EQongoing,      1        , MPI_INT,MPI_MAX, MPI_COMM_WORLD);                        
                 /*---------------------------------------------------------------*/
             }  /* EARTHQUAKE ITERATION LOOP EXITED */            
@@ -778,9 +779,9 @@ int main(int argc, char **argv)
             
             /* outoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutoutout */
             /*------------------------------------------------------------------ */
-            MPI_Barrier( MPI_COMM_WORLD );
             MPI_File_open(MPI_COMM_WORLD, cFile1_Out,MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
             MPI_File_get_size(fp_MPIout1, &offset1);
+            MPI_Barrier( MPI_COMM_WORLD );
     
             if (iRANK == 0)
             {
@@ -905,10 +906,6 @@ int main(int argc, char **argv)
                     fTDl_StrssB4_H[i] = (fabs(fTDl_CurStrss_H[i]) < fabs(fTemp1)) ? fTDl_CurStrss_H[i] : fTemp1;
                     fTDl_StrssB4_V[i] = (fabs(fTDl_CurStrss_V[i]) < fabs(fTemp2)) ? fTDl_CurStrss_V[i] : fTemp2;
                     fTDl_StrssB4_N[i] = 0.0;
-                    
-                 //   fTDl_StrssB4_H[i] = fTDl_CurStrss_H[i];
-                 //   fTDl_StrssB4_V[i] = fTDl_CurStrss_V[i];
-                 //   fTDl_StrssB4_N[i] = 0.0;
                     /*means that I enforce that all patches (regardless of stabtype) have shear stress that is at or below static strength*/
                     /*for stick-slip patches, that should just be the applied stress; for non-stick-slip I remove the excess stress above static strength...*/        
             }   }
@@ -926,7 +923,6 @@ int main(int argc, char **argv)
         MPI_Barrier( MPI_COMM_WORLD );
     }
     
-    MPI_Barrier( MPI_COMM_WORLD );
     MPI_File_open(MPI_COMM_WORLD, cFile1_Out, MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
     if (iRANK == 0)            {  MPI_File_write_at(fp_MPIout1, 0, &iEQcounter, 1, MPI_INT,  &status);            }
     MPI_File_close(&fp_MPIout1);

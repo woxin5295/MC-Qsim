@@ -499,14 +499,14 @@ void TDSetupS_inStrnHS(double x,double y,double z,double alpha,double bx,double 
 void    AngSetupFSC_S_inStrnHS(double Stress[6],double Strain[6], double X,double Y,double Z,double bX,double bY,double bZ,double PA[3], double PB[3],double mu,double lambda)
 {   /* AngSetupFSC_S calculates the Free Surface Correction to strains and  stresses associated with angular dislocation pair on each TD side.  */
     int   i,        I;
-    double nu,      beta,   TempVal1,       TempVal2,       eps;
+    double nu,      beta,   TempVal1,       TempVal2;//      eps;
     
     double SideVec[3],       eZ[3],          ey1[3],         ey2[3],     ey3[3];
     double TempVect1[3],     TempVect2[3],   yA[3],          yB[3];
     double v1A[6],           v1B[6],         v_vals[6];
 
     double A[3][3],          A_t[3][3];
-    eps = DBL_EPSILON;
+   // eps = DBL_EPSILON;
     nu  = lambda/(mu+lambda)/2.0; /* Poisson's ratio */
     /* Calculate TD side vector and the angle of the angular dislocation pair */
     SideVec[0] = PB[0]-PA[0];           SideVec[1] = PB[1]-PA[1];       SideVec[2] = PB[2]-PA[2];
