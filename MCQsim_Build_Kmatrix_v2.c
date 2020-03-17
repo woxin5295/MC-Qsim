@@ -98,7 +98,7 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
         /*-----------------------------------------------*/        
         /*-----------------------------------------------*/        
         for (i = 0; i < iOFFSET_B[iRANK]; i++)
-        {    fprintf(stdout,"Iam here even though I don't have boundary faults right now");
+        {    
             globi     = i + iSTARTPOS_B[iRANK] + iFltPtchNum; //the plus iFltPtchNum is here b/c the boundary values are following the fault values in the respective list
             iVectPos  = i*iFltPtchNum + j;
             
@@ -134,14 +134,14 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
             /*-----------------------------------------------*/             
     }   }
 //    fclose(fp1);
-            for (i = 0; i < iOFFSET_F[iRANK]; i++)
-        {
-            
-            if ((fK_FF_SS[iTDl_SelfLoc_F[i]] > 0.0) || ( fK_FF_DD[iTDl_SelfLoc_F[i]] > 0.0 )  || (fK_FF_OO[iTDl_SelfLoc_F[i]] > 0.0))
-            {
-                fprintf(stdout,"%f    %f     %f   \n",fK_FF_SS[iTDl_SelfLoc_F[i]],  fK_FF_DD[iTDl_SelfLoc_F[i]], fK_FF_OO[iTDl_SelfLoc_F[i]]);
-            }
-        }
+  //          for (i = 0; i < iOFFSET_F[iRANK]; i++)
+  //      {
+  //          
+  //          if ((fK_FF_SS[iTDl_SelfLoc_F[i]] > 0.0) || ( fK_FF_DD[iTDl_SelfLoc_F[i]] > 0.0 )  || (fK_FF_OO[iTDl_SelfLoc_F[i]] > 0.0))
+  //          {
+  //              fprintf(stdout,"%f    %f     %f   \n",fK_FF_SS[iTDl_SelfLoc_F[i]],  fK_FF_DD[iTDl_SelfLoc_F[i]], fK_FF_OO[iTDl_SelfLoc_F[i]]);
+  //          }
+  //      }
     
     /*----------------------------------------------------------------------------------*/    
     /*----------------------------------------------------------------------------------*/    
