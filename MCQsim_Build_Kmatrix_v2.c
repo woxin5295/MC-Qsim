@@ -14,134 +14,130 @@ extern void   StrainHS_Nikkhoo(float Stress[6], float Strain[6], float X, float 
 void    RotateTensor_inKmatrix(float fsig_new[6], const float fsig[6], const float fvNrm[3], const float fvStk[3], const float fvDip[3], int iRotDir);
 void       GetLocKOS_inKmatrix(float fvNrm[3], float fvStk[3], float fvDip[3], const float fP1[3], const float fP2[3], const float fP3[3]);
 void             GetPointOrder(float P1in[3], float P2in[3], float P3in[3], float fP2s[3], float fP3s[3]);
+float           GetMinDistance(float fP1s[3], float fP2s[3], float fP3s[3], float fX,float fY, float fZ);
+
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
-void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const  int iFltPtchNum, const  int iBndPtchNum, const float fMDg_UnitSlip, const float *fMDg_ShearMod, const float *fMDg_Lambda, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fTDl_Curr_DcVal, const float *fTDl_StatFric, const float *fTDl_DynFric, const float *fTDl_RefNormStrss, const float *fTDl_Area, float *fK_FF_SS, float *fK_FF_SD, float *fK_FF_SO, float *fK_FF_DS, float *fK_FF_DD, float *fK_FF_DO, float *fK_FF_OS, float *fK_FF_OD, float *fK_FF_OO, float *fK_FB_SS, float *fK_FB_SD, float *fK_FB_SO, float *fK_FB_DS, float *fK_FB_DD, float *fK_FB_DO, float *fK_BF_SS, float *fK_BF_SD, float *fK_BF_SO, float *fK_BF_DS, float *fK_BF_DD, float *fK_BF_DO, float *fK_BF_OS, float *fK_BF_OD, float *fK_BF_OO, float *fK_BB_SS, float *fK_BB_SD, float *fK_BB_SO, float *fK_BB_DS, float *fK_BB_DD, float *fK_BB_DO, float *fK_BB_OS, float *fK_BB_OD, float *fK_BB_OO, float *fKl_BB_SS, float *fKl_BB_DD, float *fKl_BB_OO,  int *iTDl_SelfLoc_F,  int *iTDl_SelfLoc_B,  int *iTDl_StabType)
+void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const int *iTDg_SegID, const int *iTDl_SegID, const  int iFltPtchNum, const  int iBndPtchNum, const float fMDg_UnitSlip, const float fMeanLegLgth, const float fMeanBndLegLgth, const float *fMDg_ShearMod, const float *fMDg_Lambda, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fTDl_Curr_DcVal, const float *fTDl_StatFric, const float *fTDl_DynFric, const float *fTDl_RefNormStrss, const float *fTDl_Area, float *fK_FF_SS, float *fK_FF_SD, float *fK_FF_SO, float *fK_FF_DS, float *fK_FF_DD, float *fK_FF_DO, float *fK_FF_OS, float *fK_FF_OD, float *fK_FF_OO, float *fK_FB_SS, float *fK_FB_SD, float *fK_FB_SO, float *fK_FB_DS, float *fK_FB_DD, float *fK_FB_DO, float *fK_BF_SS, float *fK_BF_SD, float *fK_BF_SO, float *fK_BF_DS, float *fK_BF_DD, float *fK_BF_DO, float *fK_BF_OS, float *fK_BF_OD, float *fK_BF_OO, float *fK_BB_SS, float *fK_BB_SD, float *fK_BB_SO, float *fK_BB_DS, float *fK_BB_DD, float *fK_BB_DO, float *fK_BB_OS, float *fK_BB_OD, float *fK_BB_OO, float *fKl_BB_SS, float *fKl_BB_DD, float *fKl_BB_OO,  int *iTDl_SelfLoc_F,  int *iTDl_SelfLoc_B,  int *iTDl_StabType)
 {    
     int    i,                  j,              iVectPos;
+    int    iCntFlags = 0;
     int    globi;
     float  fX,                 fY,             fZ; 
     float  fP1s[3],            fP2s[3],        fP3s[3];
     float  fP1r[3],            fP2r[3],        fP3r[3];
     float  fP2sOut[3],         fP3sOut[3];
     float  fvNrm[3],           fvStk[3],       fvDip[3];
-    
+
     float  fStress[6],         fStressOut[6];
-    float  fTemp1,             fTemp2;
- //   FILE   *fp1;
+    float  fTemp1,             fTemp2,         fDist;
+    float  fFraction = 0.5;
     /*----------------------------------------------------------------------------------*/
-    /*----------------------------------------------------------------------------------*/     
- //   if ((fp1 = fopen("IntMatrix_m1.txt","w")) == NULL)         {       exit(10);     }
-             
+    /*----------------------------------------------------------------------------------*/               
     for (j = 0; j < iFltPtchNum;  j++) /* going through the receivers */
     {  
         fP1r[0]   = fVDg_Epos[iTDg_V1[j]];        fP1r[1] = fVDg_Npos[iTDg_V1[j]];        fP1r[2] = fVDg_Zpos[iTDg_V1[j]];      
         fP2r[0]   = fVDg_Epos[iTDg_V2[j]];        fP2r[1] = fVDg_Npos[iTDg_V2[j]];        fP2r[2] = fVDg_Zpos[iTDg_V2[j]]; 
         fP3r[0]   = fVDg_Epos[iTDg_V3[j]];        fP3r[1] = fVDg_Npos[iTDg_V3[j]];        fP3r[2] = fVDg_Zpos[iTDg_V3[j]]; 
-       fX        = fTDg_CentEpos[j];             fY      = fTDg_CentNpos[j];             fZ      = fTDg_CentZpos[j];
+        fX        = fTDg_CentEpos[j];             fY      = fTDg_CentNpos[j];             fZ      = fTDg_CentZpos[j];
         /*-----------------------------------------------*/           
         GetLocKOS_inKmatrix(fvNrm, fvStk, fvDip, fP1r, fP2r, fP3r);   
-     //   fprintf(stdout,"%f     %f    %f        %f     %f    %f  \n",fvNrm[0], fvNrm[1], fvNrm[2], fvStk[0], fvStk[1], fvStk[2]);
-        
-        /*-----------------------------------------------*/           
-  //    fX        = fTDg_CentEpos[j]-fvNrm[0]*fMDg_UnitSlip;             fY      = fTDg_CentNpos[j]-fvNrm[1]*fMDg_UnitSlip;             fZ      = fTDg_CentZpos[j]-fvNrm[2]*fMDg_UnitSlip;
-            
+        /*-----------------------------------------------*/            
         for (i = 0; i < iOFFSET_F[iRANK]; i++)
         {    
-            globi     = i + iSTARTPOS_F[iRANK];
-            iVectPos  = i*iFltPtchNum + j;
-            
-            if (globi == j)             {    iTDl_SelfLoc_F[i] = iVectPos;                         } 
-        
+            globi   = i + iSTARTPOS_F[iRANK];
             fP1s[0] = fVDg_Epos[iTDg_V1[globi]];        fP1s[1] = fVDg_Npos[iTDg_V1[globi]];        fP1s[2] = fVDg_Zpos[iTDg_V1[globi]];      
             fP2s[0] = fVDg_Epos[iTDg_V2[globi]];        fP2s[1] = fVDg_Npos[iTDg_V2[globi]];        fP2s[2] = fVDg_Zpos[iTDg_V2[globi]]; 
             fP3s[0] = fVDg_Epos[iTDg_V3[globi]];        fP3s[1] = fVDg_Npos[iTDg_V3[globi]];        fP3s[2] = fVDg_Zpos[iTDg_V3[globi]]; 
             /*-----------------------------------------------*/             
             GetPointOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut); //to make sure that fault normal will point upward
             /*-----------------------------------------------*/       
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_FF_SS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
-            fK_FF_SD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_FF_SO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip; 
-     //       fprintf(fp1,"%f    %f    %f       %f    %f    %f    ", fX, fY, fZ, fK_FF_SS[iVectPos], fK_FF_SD[iVectPos] , fK_FF_SO[iVectPos] );
-            
-            /*-----------------------------------------------*/               
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, fMDg_UnitSlip, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_FF_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
-            fK_FF_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_FF_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
-    //         fprintf(fp1,"%f    %f    %f    ", fK_FF_DS[iVectPos], fK_FF_DD[iVectPos] , fK_FF_DO[iVectPos] );
-                
+            iVectPos  = i*iFltPtchNum + j;
+            if (globi == j)             
+            {   iTDl_SelfLoc_F[i] = iVectPos; 
+                fDist = fFraction*fMeanLegLgth;
+            } 
+            else
+            {   //https://www.mathematik-oberstufe.de/vektoren/a/abstand-punkt-gerade-formel.html
+                fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
+            }
             /*-----------------------------------------------*/       
-             StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, 0.0, fMDg_UnitSlip, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_FF_OS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
-            fK_FF_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_FF_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;   
-  //           fprintf(fp1,"%f    %f    %f    ", fK_FF_OS[iVectPos], fK_FF_OD[iVectPos] , fK_FF_OO[iVectPos] );
-             
-            /*-----------------------------------------------*/ 
- //            fprintf(fp1,"\n");                       
-        }   
-       
+            if ((fDist >= fFraction*fMeanLegLgth) || (iTDg_SegID[j] == iTDl_SegID[i]))
+            {   /*-----------------------------------------------*/   
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_FF_SS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
+                fK_FF_SD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_FF_SO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip; 
+                /*-----------------------------------------------*/               
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, fMDg_UnitSlip, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_FF_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
+                fK_FF_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_FF_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+                /*-----------------------------------------------*/       
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, 0.0, fMDg_UnitSlip, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_FF_OS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
+                fK_FF_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_FF_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;               
+            }
+            else
+            {   iCntFlags++; 
+              //  fprintf(stdout,"iRANK %d   Dist %f    MeanDist %f\n",iRANK, fDist, fMeanLegLgth);
+        }   }
         /*-----------------------------------------------*/        
         /*-----------------------------------------------*/        
         for (i = 0; i < iOFFSET_B[iRANK]; i++)
         {    
-            globi     = i + iSTARTPOS_B[iRANK] + iFltPtchNum; //the plus iFltPtchNum is here b/c the boundary values are following the fault values in the respective list
-            iVectPos  = i*iFltPtchNum + j;
-            
+            globi   = i + iSTARTPOS_B[iRANK] + iFltPtchNum; //the plus iFltPtchNum is here b/c the boundary values are following the fault values in the respective list
             fP1s[0] = fVDg_Epos[iTDg_V1[globi]];        fP1s[1] = fVDg_Npos[iTDg_V1[globi]];        fP1s[2] = fVDg_Zpos[iTDg_V1[globi]];      
             fP2s[0] = fVDg_Epos[iTDg_V2[globi]];        fP2s[1] = fVDg_Npos[iTDg_V2[globi]];        fP2s[2] = fVDg_Zpos[iTDg_V2[globi]]; 
             fP3s[0] = fVDg_Epos[iTDg_V3[globi]];        fP3s[1] = fVDg_Npos[iTDg_V3[globi]];        fP3s[2] = fVDg_Zpos[iTDg_V3[globi]]; 
             /*-----------------------------------------------*/             
             GetPointOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut);
+            /*-----------------------------------------------*/
+            iVectPos  = i*iFltPtchNum + j;
+            fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
             /*-----------------------------------------------*/       
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_BF_SS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
-            fK_BF_SD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_BF_SO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
-            /*-----------------------------------------------*/               
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, fMDg_UnitSlip, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_BF_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
-            fK_BF_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_BF_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
-            /*-----------------------------------------------*/                 
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, 0.0, fMDg_UnitSlip, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in normal */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_BF_OS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
-            fK_BF_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_BF_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
-            /*-----------------------------------------------*/             
-    }   }
-//    fclose(fp1);
-  //          for (i = 0; i < iOFFSET_F[iRANK]; i++)
-  //      {
-  //          
-  //          if ((fK_FF_SS[iTDl_SelfLoc_F[i]] > 0.0) || ( fK_FF_DD[iTDl_SelfLoc_F[i]] > 0.0 )  || (fK_FF_OO[iTDl_SelfLoc_F[i]] > 0.0))
-  //          {
-  //              fprintf(stdout,"%f    %f     %f   \n",fK_FF_SS[iTDl_SelfLoc_F[i]],  fK_FF_DD[iTDl_SelfLoc_F[i]], fK_FF_OO[iTDl_SelfLoc_F[i]]);
-  //          }
-  //      }
+            if (fDist >= fFraction*fMeanBndLegLgth)
+            {   /*-----------------------------------------------*/
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_BF_SS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
+                fK_BF_SD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_BF_SO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+                /*-----------------------------------------------*/               
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, fMDg_UnitSlip, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_BF_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
+                fK_BF_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_BF_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+                /*-----------------------------------------------*/                 
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, 0.0, fMDg_UnitSlip, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in normal */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_BF_OS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
+                fK_BF_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_BF_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+            }
+            else
+            {  // iCntFlags++; 
+    }   }   }
     
     /*----------------------------------------------------------------------------------*/    
     /*----------------------------------------------------------------------------------*/    
@@ -157,73 +153,90 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
         /*-----------------------------------------------*/                   
         for (i = 0; i < iOFFSET_B[iRANK]; i++)
         {    
-            globi     = i + iSTARTPOS_B[iRANK] +iFltPtchNum;
-            iVectPos  = i*iBndPtchNum + j;
-            
-            if (globi == (j+iFltPtchNum))          {    iTDl_SelfLoc_B[i] = iVectPos;                         } 
-    
+            globi   = i + iSTARTPOS_B[iRANK] +iFltPtchNum;
             fP1s[0] = fVDg_Epos[iTDg_V1[globi]];        fP1s[1] = fVDg_Npos[iTDg_V1[globi]];        fP1s[2] = fVDg_Zpos[iTDg_V1[globi]];      
             fP2s[0] = fVDg_Epos[iTDg_V2[globi]];        fP2s[1] = fVDg_Npos[iTDg_V2[globi]];        fP2s[2] = fVDg_Zpos[iTDg_V2[globi]]; 
             fP3s[0] = fVDg_Epos[iTDg_V3[globi]];        fP3s[1] = fVDg_Npos[iTDg_V3[globi]];        fP3s[2] = fVDg_Zpos[iTDg_V3[globi]]; 
             /*-----------------------------------------------*/             
             GetPointOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut);
-            /*-----------------------------------------------*/          
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
-           /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
             /*-----------------------------------------------*/ 
-            fK_BB_SS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
-            fK_BB_SD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_BB_SO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
-            /*-----------------------------------------------*/               
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, fMDg_UnitSlip, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_BB_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
-            fK_BB_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_BB_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
-            /*-----------------------------------------------*/                 
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, 0.0, fMDg_UnitSlip, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in normal */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_BB_OS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
-            fK_BB_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_BB_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
-            /*-----------------------------------------------*/   
-            if (globi == (j+iFltPtchNum))       {       fKl_BB_SS[i] = fK_BB_SS[iVectPos];       fKl_BB_DD[i] = fK_BB_DD[iVectPos];      fKl_BB_OO[i] = fK_BB_OO[iVectPos];     }
-        }
+            iVectPos  = i*iBndPtchNum + j;
+            
+            if (globi == (j+iFltPtchNum))         
+            {   iTDl_SelfLoc_B[i] = iVectPos;  
+                fDist             = fMeanLegLgth;                       
+            } 
+            else
+            {   fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
+            }
+            /*-----------------------------------------------*/       
+            if (fDist >= fFraction* fMeanBndLegLgth)
+            {       
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_BB_SS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
+                fK_BB_SD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_BB_SO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+                /*-----------------------------------------------*/               
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, fMDg_UnitSlip, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_BB_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
+                fK_BB_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_BB_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+                /*-----------------------------------------------*/                 
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, 0.0, fMDg_UnitSlip, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in normal */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_BB_OS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
+                fK_BB_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_BB_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+                /*-----------------------------------------------*/   
+                if (globi == (j+iFltPtchNum))       {       fKl_BB_SS[i] = fK_BB_SS[iVectPos];       fKl_BB_DD[i] = fK_BB_DD[iVectPos];      fKl_BB_OO[i] = fK_BB_OO[iVectPos];     }
+            }
+            else
+            {   // iCntFlags++; 
+        }   }
         /*-----------------------------------------------*/        
         /*-----------------------------------------------*/            
         for (i = 0; i < iOFFSET_F[iRANK]; i++)
         {    
-            globi     = i + iSTARTPOS_F[iRANK];
-            iVectPos  = i*iBndPtchNum + j;
-             
+            globi   = i + iSTARTPOS_F[iRANK];
             fP1s[0] = fVDg_Epos[iTDg_V1[globi]];        fP1s[1] = fVDg_Npos[iTDg_V1[globi]];        fP1s[2] = fVDg_Zpos[iTDg_V1[globi]];      
             fP2s[0] = fVDg_Epos[iTDg_V2[globi]];        fP2s[1] = fVDg_Npos[iTDg_V2[globi]];        fP2s[2] = fVDg_Zpos[iTDg_V2[globi]]; 
             fP3s[0] = fVDg_Epos[iTDg_V3[globi]];        fP3s[1] = fVDg_Npos[iTDg_V3[globi]];        fP3s[2] = fVDg_Zpos[iTDg_V3[globi]]; 
             /*-----------------------------------------------*/             
             GetPointOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut);
-            /*-----------------------------------------------*/   
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_FB_SS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
-            fK_FB_SD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_FB_SO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip; 
-            /*-----------------------------------------------*/               
-            StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, fMDg_UnitSlip, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
-            /*-----------------------------------------------*/ 
-            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-            /*-----------------------------------------------*/ 
-            fK_FB_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
-            fK_FB_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-            fK_FB_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;   
-            /*-----------------------------------------------*/                              
-    }   }
+            /*-----------------------------------------------*/  
+            iVectPos  = i*iBndPtchNum + j;
+            fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
+            /*-----------------------------------------------*/       
+            if (fDist >= fFraction*fMeanLegLgth)
+            {
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_FB_SS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
+                fK_FB_SD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_FB_SO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip; 
+                /*-----------------------------------------------*/               
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, fMDg_UnitSlip, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);        /* slip in dip */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_FB_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
+                fK_FB_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_FB_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;   
+                /*-----------------------------------------------*/     
+            }
+            else
+            {   //iCntFlags++;
+    }   }   }
     /*----------------------------------------------------------------------------------*/    
     /*----------------------------------------------------------------------------------*/    
     for (i = 0; i < iOFFSET_F[iRANK]; i++)
@@ -235,15 +248,14 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
         {         iTDl_StabType[i] = 1; /* patch is unstable*/
         }
         else /*if (fTemp2 <= fTDl_Curr_DcVal[i]) -if stress drop i.e., corresponding slip is smaller than Dc - */
-        {    if (fTemp1 < 0.0)  /*  is still weakening but just with slip that is lower than Dc => cond. stable*/
-             {    iTDl_StabType[i] = 2; /* patch is cond. stable*/
-             }
-             else /* no weakening but strengthening  => stable */
-             {    iTDl_StabType[i] = 3; /* patch is stable*/ 
-   }    }   
- 
-   }  
+        {   if (fTemp1 < 0.0)  /*  is still weakening but just with slip that is lower than Dc => cond. stable*/
+            {    iTDl_StabType[i] = 2; /* patch is cond. stable*/
+            }
+            else /* no weakening but strengthening  => stable */
+            {    iTDl_StabType[i] = 3; /* patch is stable*/ 
+    }   }   }
     /*-----------------------------------------------*/    
+    fprintf(stdout,"my rank %d    flagged interactions: %d\n",iRANK, iCntFlags); 
     return;
 } 
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
@@ -358,3 +370,38 @@ void GetPointOrder(float fP1in[3], float fP2in[3], float fP3in[3], float fP2s[3]
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
+ float GetMinDistance(float fP1s[3], float fP2s[3], float fP3s[3], float fX, float fY, float fZ)
+ {  
+    float  fDist,           fTemp;
+    float  fTemp1[3],       fTemp2[3],      fTemp3[3];
+    /*--------------------------------------------------*/
+    fTemp1[0] = fP2s[0] - fP1s[0];              fTemp1[1] = fP2s[1] - fP1s[1];              fTemp1[2] = fP2s[2] - fP1s[2];
+    fTemp2[0] = fX      - fP1s[0];              fTemp2[1] = fY      - fP1s[1];              fTemp2[2] = fZ      - fP1s[2];
+    fTemp3[0] = fTemp1[1]*fTemp2[2] -fTemp1[2]*fTemp2[1];
+    fTemp3[1] = fTemp1[2]*fTemp2[0] -fTemp1[0]*fTemp2[2];
+    fTemp3[2] = fTemp1[0]*fTemp2[1] -fTemp1[1]*fTemp2[0];           
+    fDist     = sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);  
+    /*--------------------------------------------------*/
+    fTemp1[0] = fP1s[0] - fP3s[0];              fTemp1[1] = fP1s[1] - fP3s[1];              fTemp1[2] = fP1s[2] - fP3s[2];
+    fTemp2[0] = fX      - fP3s[0];              fTemp2[1] = fY      - fP3s[1];              fTemp2[2] = fZ      - fP3s[2];
+    fTemp3[0] = fTemp1[1]*fTemp2[2] -fTemp1[2]*fTemp2[1];
+    fTemp3[1] = fTemp1[2]*fTemp2[0] -fTemp1[0]*fTemp2[2];
+    fTemp3[2] = fTemp1[0]*fTemp2[1] -fTemp1[1]*fTemp2[0];      
+    
+    //fDist    += sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);     
+    fTemp     = sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);  
+    fDist     = (fDist < fTemp) ? fDist : fTemp;
+    /*--------------------------------------------------*/
+    fTemp1[0] = fP3s[0] - fP2s[0];              fTemp1[1] = fP3s[1] - fP2s[1];              fTemp1[2] = fP3s[2] - fP2s[2];
+    fTemp2[0] = fX      - fP2s[0];              fTemp2[1] = fY      - fP2s[1];              fTemp2[2] = fZ      - fP2s[2];
+    fTemp3[0] = fTemp1[1]*fTemp2[2] -fTemp1[2]*fTemp2[1];
+    fTemp3[1] = fTemp1[2]*fTemp2[0] -fTemp1[0]*fTemp2[2];
+    fTemp3[2] = fTemp1[0]*fTemp2[1] -fTemp1[1]*fTemp2[0];                
+    
+    //fDist     = sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);  
+    fTemp     = sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);    
+    fDist     = (fDist < fTemp) ? fDist : fTemp;
+    /*--------------------------------------------------*/
+    //fDist /=3.0;
+    return fDist;
+ }

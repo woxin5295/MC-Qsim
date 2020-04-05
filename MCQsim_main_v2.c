@@ -11,10 +11,10 @@
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 float              ran0_inmain(long *idum);
-extern void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int iRealizNum,const int iUsdGrid, const int iFltSegmNum, const int iFltPtchNum, const int iBndPtchNum, const int iFltVertNum, const int iBndVertNum, const float *fSD_StrssRate, const float *fSD_SlipRate, const float *fSD_SlipRake,  int *iMD_ChgFricBtwEQs, float *fMD_AddNrmStrss, float *fMD_Vp, float *fMD_Vs, float *fMD_Poisson, float *fMD_Lambda, float *fMD_ShearMod, float *fMD_MedDense,  int *iSD_FricLawUSED,  float *fSD_RefStatFric, float *fSD_RefStatFr_vari, float *fSD_RefDynFric, float *fSD_RefDynFr_vari, float *fSD_CritSlipDist, float *fSD_CritSlipD_vari, int *iTDg_V1,  int *iTDg_V2,  int *iTDg_V3,   int *iTDl_SegID, float *fVDg_Epos, float *fVDg_Npos, float *fVDg_Zpos,float *fTDg_CentEpos, float *fTDg_CentNpos, float *fTDg_CentZpos,float *fTDl_RefStatFric, float *fTDl_RefDynFric, float *fTDl_StatFric, float *fTDl_DynFric,int   *iTDl_StabType, float *fTDl_RefStrssRateStk, float *fTDl_RefStrssRateDip, float *fTDl_SlipRate, float *fTDl_SlipRake, float *fTDl_CurrFric);
+extern void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int iRealizNum,const int iUsdGrid, const int iFltSegmNum, const int iFltPtchNum, const int iBndPtchNum, const int iFltVertNum, const int iBndVertNum, const float *fSD_StrssRate, const float *fSD_SlipRate, const float *fSD_SlipRake,  int *iMD_ChgFricBtwEQs, float *fMD_AddNrmStrss, float *fMD_Vp, float *fMD_Vs, float *fMD_Poisson, float *fMD_Lambda, float *fMD_ShearMod, float *fMD_MedDense,  int *iSD_FricLawUSED,  float *fSD_RefStatFric, float *fSD_RefStatFr_vari, float *fSD_RefDynFric, float *fSD_RefDynFr_vari, float *fSD_CritSlipDist, float *fSD_CritSlipD_vari, int *iTDg_V1,  int *iTDg_V2,  int *iTDg_V3, int *iTDl_SegID, float *fVDg_Epos, float *fVDg_Npos, float *fVDg_Zpos,float *fTDg_CentEpos, float *fTDg_CentNpos, float *fTDg_CentZpos,float *fTDl_RefStatFric, float *fTDl_RefDynFric, float *fTDl_StatFric, float *fTDl_DynFric,int   *iTDl_StabType, float *fTDl_RefStrssRateStk, float *fTDl_RefStrssRateDip, float *fTDl_SlipRate, float *fTDl_SlipRake, float *fTDl_CurrFric);
 extern void    DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const  int iFltPtchNum, const  int iBndPtchNum, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const  int *iTDl_SegID, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fSD_CritSlipDist, const float *fSD_CritSlipD_vari, const float *fMD_Vp, const float *fMD_VpVsRatio, const float *fMD_MedDense, const float *fMD_AddNrmStrss, const float fMD_g, const float fdeltTincr, const float *fRandVector, const  int iRandNumber,  int *iRandPos, int *iTDlg_TravTimesP,  int *iTDlg_TravTimesS,  int *iMD_GlobTTmax, float *fTDl_Area, float *fTDl_RefNormStrss, float *fTDl_RefDcVal, float *fTDl_Curr_DcVal, float *fTDlg_LocSrcRcv_H, float *fTDlg_LocSrcRcv_V, float *fTDlg_LocSrcRcv_N);
 
-extern void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const  int iFltPtchNum, const  int iBndPtchNum, const float fMDg_UnitSlip, const float *fMDg_ShearMod, const float *fMDg_Lambda, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fTDl_Curr_DcVal, const float *fTDl_StatFric, const float *fTDl_DynFric, const float *fTDl_RefNormStrss, const float *fTDl_Area, float *fK_FF_SS, float *fK_FF_SD, float *fK_FF_SO, float *fK_FF_DS, float *fK_FF_DD, float *fK_FF_DO, float *fK_FF_OS, float *fK_FF_OD, float *fK_FF_OO, float *fK_FB_SS, float *fK_FB_SD, float *fK_FB_SO, float *fK_FB_DS, float *fK_FB_DD, float *fK_FB_DO, float *fK_BF_SS, float *fK_BF_SD, float *fK_BF_SO, float *fK_BF_DS, float *fK_BF_DD, float *fK_BF_DO, float *fK_BF_OS, float *fK_BF_OD, float *fK_BF_OO, float *fK_BB_SS, float *fK_BB_SD, float *fK_BB_SO, float *fK_BB_DS, float *fK_BB_DD, float *fK_BB_DO, float *fK_BB_OS, float *fK_BB_OD, float *fK_BB_OO, float *fKl_BB_SS, float *fKl_BB_DD, float *fKl_BB_OO,  int *iTDl_SelfLoc_F,  int *iTDl_SelfLoc_B,  int *iTDl_StabType);
+extern void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const int *iTDg_SegID, const int *iTDl_SegID, const  int iFltPtchNum, const  int iBndPtchNum, const float fMDg_UnitSlip, const float fMeanLegLgth, const float fMeanBndLegLgth, const float *fMDg_ShearMod, const float *fMDg_Lambda, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fTDl_Curr_DcVal, const float *fTDl_StatFric, const float *fTDl_DynFric, const float *fTDl_RefNormStrss, const float *fTDl_Area, float *fK_FF_SS, float *fK_FF_SD, float *fK_FF_SO, float *fK_FF_DS, float *fK_FF_DD, float *fK_FF_DO, float *fK_FF_OS, float *fK_FF_OD, float *fK_FF_OO, float *fK_FB_SS, float *fK_FB_SD, float *fK_FB_SO, float *fK_FB_DS, float *fK_FB_DD, float *fK_FB_DO, float *fK_BF_SS, float *fK_BF_SD, float *fK_BF_SO, float *fK_BF_DS, float *fK_BF_DD, float *fK_BF_DO, float *fK_BF_OS, float *fK_BF_OD, float *fK_BF_OO, float *fK_BB_SS, float *fK_BB_SD, float *fK_BB_SO, float *fK_BB_DS, float *fK_BB_DD, float *fK_BB_DO, float *fK_BB_OS, float *fK_BB_OD, float *fK_BB_OO, float *fKl_BB_SS, float *fKl_BB_DD, float *fKl_BB_OO,  int *iTDl_SelfLoc_F,  int *iTDl_SelfLoc_B,  int *iTDl_StabType);
 
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
@@ -227,6 +227,7 @@ int main(int argc, char **argv)
     float  *fVDg_Npos;                 fVDg_Npos                = (float *)  calloc((iFltVertNum + iBndVertNum),  sizeof(float));
     float  *fVDg_Zpos;                 fVDg_Zpos                = (float *)  calloc((iFltVertNum + iBndVertNum),  sizeof(float));
     /*-------------------------------------------------------------------*/ 
+    int    *iTDg_SegID;                iTDg_SegID               = (int   *)  calloc(iFltPtchNum,                    sizeof( int));
     int    *iTDlg_TravTimesP;          iTDlg_TravTimesP         = (int   *)  calloc(iOFFSET_F[iRANK]*iFltPtchNum,   sizeof( int));
     int    *iTDlg_TravTimesS;          iTDlg_TravTimesS         = (int   *)  calloc(iOFFSET_F[iRANK]*iFltPtchNum,   sizeof( int));
     float  *fTDlg_LocSrcRcv_H;         fTDlg_LocSrcRcv_H        = (float *)  calloc(iOFFSET_F[iRANK]*iFltPtchNum,   sizeof(float));
@@ -307,6 +308,8 @@ int main(int argc, char **argv)
     float *fEQl_DeltTofPtch;           fEQl_DeltTofPtch         = (float *)  calloc(iOFFSET_F[iRANK], sizeof(float));
     float *fEQ_MRFvals;                fEQ_MRFvals              = (float *)  calloc(iMaxMRFlength,    sizeof(float));
     float *fTempMRF;                   fTempMRF                 = (float *)  calloc(iMaxMRFlength,    sizeof(float));
+    float *fEQl_MaxSlip;               fEQl_MaxSlip             = (float *)  calloc(1, sizeof(float));
+    float *fEQl_MaxDeltStress;         fEQl_MaxDeltStress       = (float *)  calloc(1, sizeof(float));
     
     int   *iTDl_WasActivated;          iTDl_WasActivated        = (int *)    calloc(iOFFSET_F[iRANK], sizeof( int)); 
     int   *iTDl_t0;                    iTDl_t0                  = (int *)    calloc(iOFFSET_F[iRANK], sizeof( int));                       
@@ -332,6 +335,8 @@ int main(int argc, char **argv)
     int   *iTempInt_1;                 iTempInt_1               = (int   *)  calloc(      1    ,      sizeof(int));
     int   *iTempInt_2;                 iTempInt_2               = (int   *)  calloc(      1    ,      sizeof(int));
     float *fTempFlt_1;                 fTempFlt_1               = (float *)  calloc(      1    ,      sizeof(float));
+    float *fTempFlt_2;                 fTempFlt_2               = (float *)  calloc(      1    ,      sizeof(float));
+    float *fTempFlt_3;                 fTempFlt_3               = (float *)  calloc(      1    ,      sizeof(float));
 
     float *fTDl_StrssOnBnd_H;          fTDl_StrssOnBnd_H        = (float *)  calloc(iOFFSET_B[iRANK], sizeof(float));
     float *fTDl_StrssOnBnd_V;          fTDl_StrssOnBnd_V        = (float *)  calloc(iOFFSET_B[iRANK], sizeof(float));
@@ -345,6 +350,11 @@ int main(int argc, char **argv)
     /*-------------------------------------------------------------------*/  
     /*-------------------------------------------------------------------*/  
     fMD_VpVsRatio[0] = fMD_Vp[0]/fMD_Vs[0];
+    /*-------------------------------------------------------------------*/  
+    for (i = 0; i < iOFFSET_F[iRANK]; i++)
+    {   iTDg_SegID[i + iSTARTPOS_F[iRANK]] = iTDl_SegID[i];
+    }
+    MPI_Allreduce(MPI_IN_PLACE, iTDg_SegID, iFltPtchNum, MPI_INT, MPI_MAX, MPI_COMM_WORLD); 
     /*-------------------------------------------------------------------*/    
     if (iDeltT2Use == 1)    {       fdeltTincr = 2.0*fMeanLegLgth/fMD_Vp[0];                 fdeltTincr = floorf(fdeltTincr*100.0)/100.0;           }
     else                    {       fdeltTincr = 1.0E+09;                                                                                           }
@@ -371,7 +381,7 @@ if (iRANK == 0)            {         fprintf(stdout,"MaxSTFlength =  %d\n",  iMa
     /*-------------------------------------------------------------------*/ 
 if (iRANK == 0)            {         fprintf(stdout,"Building K-matrix....\n");                 }
     
-    Build_K_Matrix(iRANK, iSTARTPOS_F, iOFFSET_F, iSTARTPOS_B, iOFFSET_B, iFltPtchNum, iBndPtchNum, fMD_UnitSlip, fMD_ShearMod, fMD_Lambda, iTDg_V1, iTDg_V2, iTDg_V3, fVDg_Epos, fVDg_Npos, fVDg_Zpos, fTDg_CentEpos, fTDg_CentNpos, fTDg_CentZpos, fTDl_Curr_DcVal, fTDl_StatFric, fTDl_DynFric, fTDl_RefNormStrss, fTDl_Area, fK_FF_SS, fK_FF_SD, fK_FF_SO, fK_FF_DS, fK_FF_DD, fK_FF_DO, fK_FF_OS, fK_FF_OD, fK_FF_OO, fK_FB_SS, fK_FB_SD, fK_FB_SO, fK_FB_DS, fK_FB_DD, fK_FB_DO, fK_BF_SS, fK_BF_SD, fK_BF_SO, fK_BF_DS, fK_BF_DD, fK_BF_DO, fK_BF_OS, fK_BF_OD, fK_BF_OO, fK_BB_SS, fK_BB_SD, fK_BB_SO, fK_BB_DS, fK_BB_DD, fK_BB_DO, fK_BB_OS, fK_BB_OD, fK_BB_OO, fKl_BB_SS, fKl_BB_DD, fKl_BB_OO, iTDl_SelfLoc_F,  iTDl_SelfLoc_B, iTDl_StabType);
+    Build_K_Matrix(iRANK, iSTARTPOS_F, iOFFSET_F, iSTARTPOS_B, iOFFSET_B, iTDg_SegID, iTDl_SegID, iFltPtchNum, iBndPtchNum, fMD_UnitSlip, fMeanLegLgth, fMeanBndLegLgth, fMD_ShearMod, fMD_Lambda, iTDg_V1, iTDg_V2, iTDg_V3, fVDg_Epos, fVDg_Npos, fVDg_Zpos, fTDg_CentEpos, fTDg_CentNpos, fTDg_CentZpos, fTDl_Curr_DcVal, fTDl_StatFric, fTDl_DynFric, fTDl_RefNormStrss, fTDl_Area, fK_FF_SS, fK_FF_SD, fK_FF_SO, fK_FF_DS, fK_FF_DD, fK_FF_DO, fK_FF_OS, fK_FF_OD, fK_FF_OO, fK_FB_SS, fK_FB_SD, fK_FB_SO, fK_FB_DS, fK_FB_DD, fK_FB_DO, fK_BF_SS, fK_BF_SD, fK_BF_SO, fK_BF_DS, fK_BF_DD, fK_BF_DO, fK_BF_OS, fK_BF_OD, fK_BF_OO, fK_BB_SS, fK_BB_SD, fK_BB_SO, fK_BB_DS, fK_BB_DD, fK_BB_DO, fK_BB_OS, fK_BB_OD, fK_BB_OO, fKl_BB_SS, fKl_BB_DD, fKl_BB_OO, iTDl_SelfLoc_F,  iTDl_SelfLoc_B, iTDl_StabType);
    
 if (iRANK == 0)            {         fprintf(stdout,"K-matrix done \n");                        }    
     /*-------------------------------------------------------------------*/  
@@ -478,36 +488,48 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
             for (j = 0; j < iFltPtchNum;  j++)         {    fTempFltVect_1[j]   = 0.0;                fTempFltVect_2[j]   = 0.0;             fTempFltVect_3[j]   = 0.0;            } 
             /*-------------------------------------------------------------------*/
             for (i = 0; i < iOFFSET_F[iRANK]; i++) 
-            {      
-                fTemp            = expf(-(fTimeStpInSecs*fTDl_PSeisStrssTStep_F[i])/fTDl_CharRlxTime_F[i]);
-                fPostSeisIncrNrm = fTDl_StrssB4_N[i] -fTDl_PSeisStrssAt_t0_N_F[i]*fTemp;/*is current deviation from RefNrmStrss minus the expected value after given relaxation time; the difference needs to be released*/    
-                fTemp1           = fTDl_PSeisStrssAt_t0_S_F[i] - (fTDl_RefNormStrss[i] +fTDl_PSeisStrssAt_t0_N_F[i]*fTemp)*fTDl_CurrFric[i]; /*this is amount of shear stress when event stopped minus the updated frictional strength; it determines the amount of excess stress, assuming the updated frictional strength was present at the time t0*/
-                fTemp2           = sqrtf(fTDl_StrssB4_H[i]*fTDl_StrssB4_H[i] +fTDl_StrssB4_V[i]*fTDl_StrssB4_V[i]);
-                fTemp3           = fTemp2 - fTemp1*fTemp;/*this is currently applied amount of shear stress minus the expected value -which comes from the assumed excess and the time decay; defines how much stress can be removed*/
-                /*remember that fTemp is the decay fraction (value between 0 and 1); multiplied with fTemp1 determines the expected value of shear stress at given time; this is subtracted from the actual amount fTemp2 to get difference that can be released*/
-                if ((fTemp3 > 0.0) && (iTDl_StabType[i] != 1))  /*if there is shear stress above the current strength value and if the patch is not-stick-slip....*/ 
-                {   fprintf(stdout," AM I EVEN GETTING TO THIS?");
-                    fPostSeisIncrStk   = fTemp3/fTemp2 *fTDl_StrssB4_H[i]; /*gives me component to release in current time step...*/
-                    fPostSeisIncrDip   = fTemp3/fTemp2 *fTDl_StrssB4_V[i];
+            {   /*------------------------------------------*/   
+                fTemp  = expf(-(fTimeStpInSecs*fTDl_PSeisStrssTStep_F[i])/fTDl_CharRlxTime_F[i]);
+                fTemp1 = fabs(fTDl_StrssB4_N[i]) - fTDl_PSeisStrssAt_t0_N_F[i]*fTemp; /*get absolute difference between current and expected normal stress deviation (deviation rel. to refnormstrss)*/
+           //     fprintf(stdout,"%d   %d    %f    %f    %f        %f\n",iRANK, i, fTDl_PSeisStrssTStep_F[i], fTemp, fTemp1, fTDl_StrssB4_N[i]);
+                if (fTemp1 > 0.0) /*if i have some excess normal stress (larger, in absolute terms, than expected value) then I release*/
+                {   fTemp2           = (fTDl_StrssB4_N[i] < 0.0)    ? -1.0 : 1.0; /*need to get the sign of current deviation to make this correct*/
+                    fPostSeisIncrNrm = fTemp1 *fTemp2;   /*now multiply the excess with sign to get correct value to release*/    
+                    fTemp1           = fTDl_RefNormStrss[i] + (fTDl_PSeisStrssAt_t0_N_F[i] *fTemp *fTemp2);    /*this is the new normal stress for given time/loading step*/
+                }                     
+                else
+                {   fPostSeisIncrNrm = 0.0;                 
+                    fTemp1           = fTDl_RefNormStrss[i] + fTDl_StrssB4_N[i];        /*this is the new normal stress for given time/loading step*/
+                }
+                /*------------------------------------------*/
+                fTemp2 = fTemp1*fTDl_CurrFric[i]; /*this is current strength, using the updated normal stress value*/
+                fTemp1 = sqrtf(fTDl_StrssB4_H[i]*fTDl_StrssB4_H[i] +fTDl_StrssB4_V[i]*fTDl_StrssB4_V[i]) -fTemp2; /*this is currently applied shear minus curr strength => current excess stress; if negative then there is no excess*/
+                fTemp3 = fTDl_PSeisStrssAt_t0_S_F[i]*fTemp -fTemp2;/*this is expected shear (from initial shear at t0 and decay time) minus curr. strength => expected excess stress; is negative if there is no excess*/
+                
+                if ((fTemp3 > 0.0) && (fTemp1 > fTemp3) && (iTDl_StabType[i] != 1)) /*if I have currently applied excess stress; if I have expected excess stress; and if the current is larger than the expected excess shear*/
+           //     if ((fTemp3 > 0.0) && (fTemp1 > fTemp3) )
+                {   
+                    fPostSeisIncrStk   = fabs((fTemp1 - fTemp3)/(fTemp1+fTemp2))*fTDl_StrssB4_H[i]; /*gives me component to release in current time step...*/
+                    fPostSeisIncrDip   = fabs((fTemp1 - fTemp3)/(fTemp1+fTemp2))*fTDl_StrssB4_V[i]; /* a bit hard to explain in words but clear when drawn (make sketch and put into refernce text)*/
                 }
                 else
                 {   fPostSeisIncrStk   = 0.0;
-                    fPostSeisIncrDip   = 0.0;
-                }   /*so, if I use postseismic, then I can release excess normal stress on all patches, and shear stress on non-stick-slip patches*/
+                    fPostSeisIncrDip   = 0.0; /*so, if I use postseismic, then I can release excess normal stress on all patches, and shear stress on non-stick-slip patches*/               
+                }
+                /*------------------------------------------*/
                 fTDl_PSeisStrssTStep_F[i] += 1.0;     
                     
-                fTemp1           = -1.0*fPostSeisIncrStk/fK_FF_SS[iTDl_SelfLoc_F[i]]; /* slip in horizontal */
-                fTemp2           = -1.0*fPostSeisIncrDip/fK_FF_DD[iTDl_SelfLoc_F[i]]; /* slip in vertical  */
-                fTemp3           = -1.0*fPostSeisIncrNrm/fK_FF_OO[iTDl_SelfLoc_F[i]]; /* slip in normal  */  
-                
+                fTemp1 = -1.0*fPostSeisIncrStk/fK_FF_SS[iTDl_SelfLoc_F[i]]; /* slip in horizontal */
+                fTemp2 = -1.0*fPostSeisIncrDip/fK_FF_DD[iTDl_SelfLoc_F[i]]; /* slip in vertical  */
+                fTemp3 = +1.0*fPostSeisIncrNrm/fK_FF_OO[iTDl_SelfLoc_F[i]]; /* slip in normal, diff sign. b/c increment is for compr.-pos, but I need compr.-neg  */  
+                /*------------------------------------------*/
                 if (sqrt(fTemp1*fTemp1 +fTemp2*fTemp2 +fTemp3*fTemp3) > 0.01*fMD_UnitSlip) /*if slip is less then 1% of the unitslip (which in turn is 0.1% of mean leg length (per given increment) then skip...*/
                 {   for (j = 0; j < iFltPtchNum;  j++) /* here is then the relaxation i.e., stress redistribution according to the amount of loading that will be used this time step */
                     {   /*do I need to test there that only the patches with proper stab. type are getting this?*/
-                        iVectPos            = i*iFltPtchNum + j;        
+                        iVectPos           = i*iFltPtchNum + j;        
                         fTempFltVect_1[j] += fTemp1*fK_FF_SS[iVectPos] +fTemp2*fK_FF_DS[iVectPos] +fTemp3*fK_FF_OS[iVectPos];
                         fTempFltVect_2[j] += fTemp1*fK_FF_SD[iVectPos] +fTemp2*fK_FF_DD[iVectPos] +fTemp3*fK_FF_OD[iVectPos];
-                        fTempFltVect_3[j] -= fTemp1*fK_FF_SO[iVectPos] +fTemp2*fK_FF_DO[iVectPos] +fTemp3*fK_FF_OO[iVectPos];
-                        //use negative sign b/c K-matrix has normal stress increase to be negative (normal vector points outward so that positive value means extension; my normalstress is defined to be positive when compressive...
+                        fTempFltVect_3[j] += fTemp1*fK_FF_SO[iVectPos] +fTemp2*fK_FF_DO[iVectPos] +fTemp3*fK_FF_OO[iVectPos];                        
             }   }   }   
 
             MPI_Allreduce(fTempFltVect_1, fTDg_DeltStrssH, iFltPtchNum , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
@@ -517,23 +539,30 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
             for (i = 0; i < iOFFSET_F[iRANK]; i++) 
             {    fTDl_StrssB4_H[i]   += fTDg_DeltStrssH[i+iSTARTPOS_F[iRANK]];                
                  fTDl_StrssB4_V[i]   += fTDg_DeltStrssV[i+iSTARTPOS_F[iRANK]];    
-                 fTDl_StrssB4_N[i]   += fTDg_DeltStrssN[i+iSTARTPOS_F[iRANK]];    
-            }      
+                 fTDl_StrssB4_N[i]   -= fTDg_DeltStrssN[i+iSTARTPOS_F[iRANK]];    
+            }    
             /*-------------------------------------------------------------------*/
             for (j = 0; j < iFltPtchNum;  j++)         {    fTempFltVect_1[j]   = 0.0;                fTempFltVect_2[j]   = 0.0;             fTempFltVect_3[j]   = 0.0;            } 
             /*-------------------------------------------------------------------*/
             if (iBndPtchNum > 0)
             {   for (i = 0; i < iOFFSET_B[iRANK]; i++)  //then the same thing for the boundary patches...
                 {   
-                    fTemp            = expf(-(fTimeStpInSecs*fTDl_PSeisStrssTStep_B[i])/fTDl_CharRlxTime_B[i]);
-                    fPostSeisIncrNrm = fTDl_StrssOnBnd_N[i] -fTDl_PSeisStrssAt_t0_N_B[i]*fTemp;/*is current deviation from RefNrmStrss minus the expected value after given relaxation time; the difference needs to be released*/
-                    fTemp1           = fTDl_PSeisStrssAt_t0_S_B[i];
-                    fTemp2           = sqrtf(fTDl_StrssOnBnd_H[i]*fTDl_StrssOnBnd_H[i] +fTDl_StrssOnBnd_V[i]*fTDl_StrssOnBnd_V[i]);
-                    fTemp3           = fTemp2 - fTemp1*fTemp;
-                
-                    if (fTemp3 > 0.0) 
-                    {   fPostSeisIncrStk = fTemp3/fTemp2 *fTDl_StrssOnBnd_H[i];
-                        fPostSeisIncrDip = fTemp3/fTemp2 *fTDl_StrssOnBnd_V[i];
+                    fTemp  = expf(-(fTimeStpInSecs*fTDl_PSeisStrssTStep_B[i])/fTDl_CharRlxTime_B[i]);
+                    fTemp1 = fabs(fTDl_StrssOnBnd_N[i]) - fTDl_PSeisStrssAt_t0_N_B[i]*fTemp; /*get absolute difference between current and expected normal stress deviation (deviation rel. to refnormstrss)*/
+                    if (fTemp1 > 0.0) /*if i have some excess normal stress (larger, in absolute terms, than expected value) then I release*/
+                    {   fTemp2           = (fTDl_StrssB4_N[i] < 0.0)    ? -1.0 : 1.0; /*need to get the sign of current deviation to make this correct*/
+                        fPostSeisIncrNrm = fTemp1 *fTemp2;   /*now multiply the excess with sign to get correct value to release*/    
+                    }                     
+                    else
+                    {   fPostSeisIncrNrm = 0.0;                 
+                    }
+                    
+                    fTemp1 = fTDl_PSeisStrssAt_t0_S_B[i]*fTemp; /*the expected shear stress at given point in time*/
+                    fTemp2 = sqrtf(fTDl_StrssOnBnd_H[i]*fTDl_StrssOnBnd_H[i] +fTDl_StrssOnBnd_V[i]*fTDl_StrssOnBnd_V[i]); /*the currently applied shear stress*/
+
+                    if (fTemp2 > fTemp1) /*if the currently applied is larger than the expected value => release te excess*/ 
+                    {   fPostSeisIncrStk = (fTemp2 -fTemp1)/fTemp2 *fTDl_StrssOnBnd_H[i];
+                        fPostSeisIncrDip = (fTemp2 -fTemp1)/fTemp2 *fTDl_StrssOnBnd_V[i];
                     }
                     else
                     {   fPostSeisIncrStk = 0.0;
@@ -541,9 +570,9 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                     }
                     fTDl_PSeisStrssTStep_B[i] += 1.0;  
                  
-                    fTemp1           = -1.0*fPostSeisIncrStk/fKl_BB_SS[i]; /* slip in horizontal */
-                    fTemp2           = -1.0*fPostSeisIncrDip/fKl_BB_DD[i]; /* slip in vertical  */
-                    fTemp3           = -1.0*fPostSeisIncrNrm/fKl_BB_OO[i]; /* slip in vertical  */
+                    fTemp1 = -1.0*fPostSeisIncrStk/fKl_BB_SS[i]; /* slip in horizontal */
+                    fTemp2 = -1.0*fPostSeisIncrDip/fKl_BB_DD[i]; /* slip in vertical  */
+                    fTemp3 = +1.0*fPostSeisIncrNrm/fKl_BB_OO[i]; /* slip in vertical diff sign. b/c increment is for compr.-pos, but I need compr.-neg  */  
                     
                     if (sqrt(fTemp1*fTemp1 +fTemp2*fTemp2 +fTemp3*fTemp3) > 0.01*fMD_UnitSlip)
                     {   fTDl_StrssOnBnd_H[i] -= fPostSeisIncrStk; /*subtract stress on boundary patch; */
@@ -555,20 +584,21 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                             iVectPos            = i*iFltPtchNum + j;
                             fTempFltVect_1[j] += fTemp1*fK_BF_SS[iVectPos] +fTemp2*fK_BF_DS[iVectPos] +fTemp3*fK_BF_OS[iVectPos];
                             fTempFltVect_2[j] += fTemp1*fK_BF_SD[iVectPos] +fTemp2*fK_BF_DD[iVectPos] +fTemp3*fK_BF_OD[iVectPos];
-                            fTempFltVect_3[j] -= fTemp1*fK_BF_SO[iVectPos] +fTemp2*fK_BF_DO[iVectPos] +fTemp3*fK_BF_OO[iVectPos]; 
+                            fTempFltVect_3[j] += fTemp1*fK_BF_SO[iVectPos] +fTemp2*fK_BF_DO[iVectPos] +fTemp3*fK_BF_OO[iVectPos]; 
                             //use negative sign b/c K-matrix has normal stress increase to be negative (normal vector points outward so that positive value means extension; my normalstress is defined to be positive when compressive...
                 }   }   }
 
                 MPI_Allreduce(fTempFltVect_1, fTDg_DeltStrssH, iFltPtchNum , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
                 MPI_Allreduce(fTempFltVect_2, fTDg_DeltStrssV, iFltPtchNum , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
                 MPI_Allreduce(fTempFltVect_3, fTDg_DeltStrssN, iFltPtchNum , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);   
-            }
+                
+                for (i = 0; i < iOFFSET_F[iRANK]; i++) 
+                {   fTDl_StrssB4_H[i]   += fTDg_DeltStrssH[i+iSTARTPOS_F[iRANK]];                
+                    fTDl_StrssB4_V[i]   += fTDg_DeltStrssV[i+iSTARTPOS_F[iRANK]];      
+                    fTDl_StrssB4_N[i]   -= fTDg_DeltStrssN[i+iSTARTPOS_F[iRANK]];        
+            }   }
             /*-------------------------------------------------------------------*/
-            for (i = 0; i < iOFFSET_F[iRANK]; i++) 
-            {    fTDl_StrssB4_H[i]   += fTDg_DeltStrssH[i+iSTARTPOS_F[iRANK]];                
-                 fTDl_StrssB4_V[i]   += fTDg_DeltStrssV[i+iSTARTPOS_F[iRANK]];      
-                 fTDl_StrssB4_N[i]   += fTDg_DeltStrssN[i+iSTARTPOS_F[iRANK]];        
-        }   }     
+        }     
         /*------------------------------------------------------------------------------*/
         iTempInt_1[0] = 0;
         for (i = 0; i < iOFFSET_F[iRANK]; i++) 
@@ -586,7 +616,7 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
         /*-------------------------------------------------------------------*/
         if (iEQ_EQongoing[0] == 1)    /* EARTHQUAKE STARTS */    
         {   iEQ_TotalRuptT[0] = -1;                              iEQ_MRFlength[0]      = -1;                          iEQcounter++;    
-            if (iRANK == 0)     {       fprintf(stdout,"EQ starts now\n");          }
+            if (iRANK == 0)     {       fprintf(stdout,"EQ starts now...");          }
             
             for (i = 0; i < iOFFSET_F[iRANK]; i++) 
             {   fTDl_CurStrss_H[i] = fTDl_StrssB4_H[i];          fTDl_CurStrss_V[i]    = fTDl_StrssB4_V[i];           fTDl_CurStrss_N[i]    = fTDl_RefNormStrss[i] +fTDl_StrssB4_N[i];                          
@@ -693,9 +723,8 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                                         fUsedNrmSlip       = fTDlg_LocSrcRcv_N[iVectPos]*fTemp;
                                         fTempFltVect_1[j] += fUsedStkSlip*fK_FF_SS[iVectPos] +fUsedDipSlip*fK_FF_DS[iVectPos] +fUsedNrmSlip*fK_FF_OS[iVectPos];
                                         fTempFltVect_2[j] += fUsedStkSlip*fK_FF_SD[iVectPos] +fUsedDipSlip*fK_FF_DD[iVectPos] +fUsedNrmSlip*fK_FF_OD[iVectPos];
-                                        fTempFltVect_3[j] -= fUsedStkSlip*fK_FF_SO[iVectPos] +fUsedDipSlip*fK_FF_DO[iVectPos] +fUsedNrmSlip*fK_FF_OO[iVectPos];   
-                                        //use negative sign b/c K-matrix has normal stress increase to be negative (normal vector points outward so that positive value means extension; my normalstress is defined to be positive when compressive...
-                            }   }   }                     
+                                        fTempFltVect_3[j] += fUsedStkSlip*fK_FF_SO[iVectPos] +fUsedDipSlip*fK_FF_DO[iVectPos] +fUsedNrmSlip*fK_FF_OO[iVectPos];     
+                            }   }   }   
                             iTDlg_Pdone[iVectPos] = (STFcnt - iTDlg_TravTimesP[iVectPos]) >= 0 ? (STFcnt - iTDlg_TravTimesP[iVectPos]+1) : 0;        
                             /*---------------------------------------------------------*/                
                             for (stfpos = iTDlg_Sdone[iVectPos]; stfpos <= (STFcnt - iTDlg_TravTimesS[iVectPos]); stfpos++) /*2nd part is negative if signal has not arrived, then the loop is skipped*/
@@ -713,8 +742,7 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                                                                            
                                         fTempFltVect_1[j] += fUsedStkSlip*fK_FF_SS[iVectPos] +fUsedDipSlip*fK_FF_DS[iVectPos] +fUsedNrmSlip*fK_FF_OS[iVectPos];
                                         fTempFltVect_2[j] += fUsedStkSlip*fK_FF_SD[iVectPos] +fUsedDipSlip*fK_FF_DD[iVectPos] +fUsedNrmSlip*fK_FF_OD[iVectPos];
-                                        fTempFltVect_3[j] -= fUsedStkSlip*fK_FF_SO[iVectPos] +fUsedDipSlip*fK_FF_DO[iVectPos] +fUsedNrmSlip*fK_FF_OO[iVectPos];
-                                        //use negative sign b/c K-matrix has normal stress increase to be negative (normal vector points outward so that positive value means extension; my normalstress is defined to be positive when compressive...
+                                        fTempFltVect_3[j] += fUsedStkSlip*fK_FF_SO[iVectPos] +fUsedDipSlip*fK_FF_DO[iVectPos] +fUsedNrmSlip*fK_FF_OO[iVectPos];
                             }   }   }    
                             iTDlg_Sdone[iVectPos] = (STFcnt - iTDlg_TravTimesS[iVectPos]) >= 0 ? (STFcnt- iTDlg_TravTimesS[iVectPos]+1) : 0; 
                 }   }   }   
@@ -729,7 +757,7 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                 {    
                     fTDl_CurStrss_H[i] += fTDg_DeltStrssH[i+iSTARTPOS_F[iRANK]];
                     fTDl_CurStrss_V[i] += fTDg_DeltStrssV[i+iSTARTPOS_F[iRANK]];
-                    fTDl_CurStrss_N[i] += fTDg_DeltStrssN[i+iSTARTPOS_F[iRANK]];
+                    fTDl_CurStrss_N[i] -= fTDg_DeltStrssN[i+iSTARTPOS_F[iRANK]];//use negative sign b/c K-matrix has normal stress increase to be negative (normal vector points outward so that positive value means extension; my normalstress is defined to be positive when compressive...
                 }   
                 /*---------------------------------------------------------------*/
                 if (iTempInt_1[0] == 0) /* make sure that all the signal is out of the system => even if no slip occurred in last step on any patch; there may still be stress in the system that has not reached a receiver => wait until they all got their share */
@@ -748,7 +776,7 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                         {   iVectPos = i*iBndPtchNum +j;
                             fTempBndVect_1[j] += fTDl_EventSlipH[i]*fK_FB_SS[iVectPos] +fTDl_EventSlipV[i]*fK_FB_DS[iVectPos];
                             fTempBndVect_2[j] += fTDl_EventSlipH[i]*fK_FB_SD[iVectPos] +fTDl_EventSlipV[i]*fK_FB_DD[iVectPos];
-                            fTempBndVect_3[j] -= fTDl_EventSlipH[i]*fK_FB_SO[iVectPos] +fTDl_EventSlipV[i]*fK_FB_DO[iVectPos];
+                            fTempBndVect_3[j] += fTDl_EventSlipH[i]*fK_FB_SO[iVectPos] +fTDl_EventSlipV[i]*fK_FB_DO[iVectPos];
                             //use negative sign b/c K-matrix has normal stress increase to be negative (normal vector points outward so that positive value means extension; my normalstress is defined to be positive when compressive...
                 }   }   }   
                 MPI_Allreduce(fTempBndVect_1, fTDg_TempBnd_H, iBndPtchNum , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
@@ -757,9 +785,8 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                 for (i = 0; i < iOFFSET_B[iRANK]; i++) 
                 {   fTDl_StrssOnBnd_H[i] += fTDg_TempBnd_H[i+iSTARTPOS_B[iRANK]];
                     fTDl_StrssOnBnd_V[i] += fTDg_TempBnd_V[i+iSTARTPOS_B[iRANK]];
-                    fTDl_StrssOnBnd_N[i] += fTDg_TempBnd_N[i+iSTARTPOS_B[iRANK]];
-            }   }   
-                       
+                    fTDl_StrssOnBnd_N[i] -= fTDg_TempBnd_N[i+iSTARTPOS_B[iRANK]]; //use negative sign b/c K-matrix has normal stress increase to be negative (normal vector points outward so that positive value means extension; my normalstress is defined to be positive when compressive...
+            }   }                       
 /*------------------------------------------------------------------ */
 /*------------------------------------------------------------------ */
 /*------------------------------------------------------------------ */
@@ -775,13 +802,17 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                     fEQl_SlipHofPtch[iEQ_ActPtchNum[0]] = fTDl_EventSlipH[i];    
                     fEQl_SlipVofPtch[iEQ_ActPtchNum[0]] = fTDl_EventSlipV[i];    
                     iEQl_StabType[iEQ_ActPtchNum[0]]    = iTDl_StabType[i];   
+                    fEQl_MaxSlip[0]       = (sqrtf(fTDl_EventSlipH[i]*fTDl_EventSlipH[i] + fTDl_EventSlipV[i]*fTDl_EventSlipV[i]) > fEQl_MaxSlip[0]) ?  sqrtf(fTDl_EventSlipH[i]*fTDl_EventSlipH[i] + fTDl_EventSlipV[i]*fTDl_EventSlipV[i]) : fEQl_MaxSlip[0];
+                    fEQl_MaxDeltStress[0] = (fEQl_DeltTofPtch[iEQ_ActPtchNum[0]] > fEQl_MaxDeltStress[0]) ? fEQl_DeltTofPtch[iEQ_ActPtchNum[0]] : fEQl_MaxDeltStress[0];
                     iEQ_ActPtchNum[0]++;       
             }   } 
             /*------------------------------------------------------------------ */  
-            MPI_Allreduce(iEQ_ActPtchNum,  iEQ_CmbPtchNum,       1          ,    MPI_INT,   MPI_SUM, MPI_COMM_WORLD);
-            MPI_Allreduce(fEQ_SeisPot,     fTempFlt_1,           1          ,    MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-            MPI_Allreduce(iEQ_MRFlength,   iTempInt_1,           1          ,    MPI_INT,   MPI_MAX, MPI_COMM_WORLD);
-            MPI_Allreduce(fEQ_MRFvals,      fTempMRF,     iMaxMRFlength     ,    MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(iEQ_ActPtchNum,      iEQ_CmbPtchNum,       1          ,    MPI_INT,   MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(fEQ_SeisPot,         fTempFlt_1,           1          ,    MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(iEQ_MRFlength,       iTempInt_1,           1          ,    MPI_INT,   MPI_MAX, MPI_COMM_WORLD);
+            MPI_Allreduce(fEQl_MaxSlip,        fTempFlt_2,           1          ,    MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
+            MPI_Allreduce(fEQl_MaxDeltStress,  fTempFlt_3,           1          ,    MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
+            MPI_Allreduce(fEQ_MRFvals,         fTempMRF,      iMaxMRFlength     ,    MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
             
             MPI_Allgather(iEQ_ActPtchNum,      1,         MPI_INT,     iEQ_WrtStartPos, 1, MPI_INT,  MPI_COMM_WORLD);
             
@@ -804,7 +835,7 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                 MPI_File_write_at(fp_MPIout1,   offset1 +2*sizeof(float) +1*sizeof(int),    iTempInt_1,           1,         MPI_INT,   &status);
                 MPI_File_write_at(fp_MPIout1,   offset1 +2*sizeof(float) +2*sizeof(int),    fTempMRF,       iTempInt_1[0],   MPI_FLOAT, &status);
 
-                fprintf(stdout,"Earthquake time %f    Magn: %f act patches: %d   MRF length: %d   \n",fTimeYears,  fTemp2, iEQ_CmbPtchNum[0],iTempInt_1[0]);   
+                fprintf(stdout,"Earthquake time %f    Magn: %f act patches: %d   MRF length: %d   MaxSlip: %f     MaxStressDrop: %f\n",fTimeYears,  fTemp2, iEQ_CmbPtchNum[0],iTempInt_1[0],fTempFlt_2[0],fTempFlt_3[0]*1.0E-6);   
                 //maybe also print the MRF out             
             }
 
@@ -867,6 +898,7 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
             }
             iEQ_ActPtchNum[0]        = 0;               iEQ_CmbPtchNum[0]    = 0;             iEQ_MRFlength[0]      = 0;                                        
             iEQ_EQongoing[0]         = 0;               fEQ_SeisPot[0]       = 0.0;           iEQ_EQEndCntr[0]      = 0;    
+            fEQl_MaxSlip[0]          = 0.0;             fEQl_MaxDeltStress[0]=0.0;
              
             for (i = 0; i < iSIZE; i++)          {      iEQ_WrtStartPos[i]   = 0;                                                                                         }
             for (i = 0; i < iMaxMRFlength; i++)  {      fEQ_MRFvals[i]       = 0.0;                                                                                       }
@@ -908,11 +940,14 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
             for (i = 0; i < iOFFSET_F[iRANK]; i++) 
             {   if (iUsePostSeismic == 1)
                 {   fTDl_StrssB4_H[i]           = fTDl_CurStrss_H[i];
-                    fTDl_StrssB4_V[i]           = fTDl_CurStrss_V[i];
-                    fTDl_StrssB4_N[i]           = fTDl_CurStrss_V[i] - fTDl_RefNormStrss[i]; 
+                    fTDl_StrssB4_V[i]           = fTDl_CurStrss_V[i];  
+                    fTDl_CurStrss_N[i]          = (fTDl_CurStrss_N[i] > 0.0) ? fTDl_CurStrss_N[i] : 0.0;                
+                    //muss aber dann auch schauen ob das wirklich sinn macht ober ob's anders geregelt werden musss... => koennte ja normal
+                    fTDl_StrssB4_N[i]           = fTDl_CurStrss_N[i] - fTDl_RefNormStrss[i]; 
+               //    fTDl_StrssB4_N[i]            = 0.0;
                     fTDl_PSeisStrssAt_t0_S_F[i] = sqrtf(fTDl_StrssB4_H[i]*fTDl_StrssB4_H[i] +fTDl_StrssB4_V[i]*fTDl_StrssB4_V[i]);  
-                    fTDl_PSeisStrssAt_t0_N_F[i] = fTDl_StrssB4_N[i];   
-                    fTDl_PSeisStrssTStep_F[i]   = 0.0;
+                    fTDl_PSeisStrssAt_t0_N_F[i] = fabs(fTDl_StrssB4_N[i]);   
+                    fTDl_PSeisStrssTStep_F[i]   = 1.0;
                 }
                 else /*no postseismic, everything above static strength is removed....uses the orientation of the currently applied stress*/
                 {   fTemp             = sqrtf(fTDl_CurStrss_H[i]*fTDl_CurStrss_H[i] +fTDl_CurStrss_V[i]*fTDl_CurStrss_V[i]);  /*applied shear stress*/
@@ -924,15 +959,16 @@ if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprint
                     fTDl_StrssB4_N[i] = 0.0;
                     /*means that I enforce that all patches (regardless of stabtype) have shear stress that is at or below static strength*/
                     /*for stick-slip patches, that should just be the applied stress; for non-stick-slip I remove the excess stress above static strength...*/        
+
             }   }
             /*------------------------------------------------------------------ */
             for (i = 0; i < iOFFSET_B[iRANK]; i++) 
             {
                 if (iUsePostSeismic == 1)
-                {   
+                {  // fTDl_StrssOnBnd_N[i]        = 0.0;
                     fTDl_PSeisStrssAt_t0_S_B[i] = sqrtf(fTDl_StrssOnBnd_H[i]*fTDl_StrssOnBnd_H[i] +fTDl_StrssOnBnd_V[i]*fTDl_StrssOnBnd_V[i]);  
-                    fTDl_PSeisStrssAt_t0_N_B[i] = fTDl_StrssOnBnd_N[i];
-                    fTDl_PSeisStrssTStep_B[i]   = 0.0;
+                    fTDl_PSeisStrssAt_t0_N_B[i] = fabs(fTDl_StrssOnBnd_N[i]);
+                    fTDl_PSeisStrssTStep_B[i]   = 1.0;
             }   }
             /*------------------------------------------------------------------ */
         }
