@@ -34,7 +34,7 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
 
     float  fStress[6],         fStressOut[6];
     float  fTemp1,             fTemp2,         fDist;
-    float  fFraction = 0.5;
+    float  fFraction = 0.3;
     /*----------------------------------------------------------------------------------*/
     /*----------------------------------------------------------------------------------*/               
     for (j = 0; j < iFltPtchNum;  j++) /* going through the receivers */
@@ -93,7 +93,6 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
             }
             else
             {   iCntFlags++; 
-              //  fprintf(stdout,"iRANK %d   Dist %f    MeanDist %f\n",iRANK, fDist, fMeanLegLgth);
         }   }
         /*-----------------------------------------------*/        
         /*-----------------------------------------------*/        
@@ -109,7 +108,7 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
             iVectPos  = i*iFltPtchNum + j;
             fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
             /*-----------------------------------------------*/       
-            if (fDist >= fFraction*fMeanBndLegLgth)
+            if (fDist >= 0.0*fMeanBndLegLgth)
             {   /*-----------------------------------------------*/
                 StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
                 /*-----------------------------------------------*/ 
@@ -136,9 +135,8 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
                 fK_BF_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
             }
             else
-            {  // iCntFlags++; 
-    }   }   }
-    
+            {
+    }   }   }   
     /*----------------------------------------------------------------------------------*/    
     /*----------------------------------------------------------------------------------*/    
     for (j = 0; j < iBndPtchNum;  j++) /* going through the receivers */
@@ -162,15 +160,15 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
             /*-----------------------------------------------*/ 
             iVectPos  = i*iBndPtchNum + j;
             
-            if (globi == (j+iFltPtchNum))         
+            if (i + iSTARTPOS_B[iRANK] == j)         
             {   iTDl_SelfLoc_B[i] = iVectPos;  
-                fDist             = fMeanLegLgth;                       
+                fDist             = fFraction*fMeanBndLegLgth;                 
             } 
             else
             {   fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
             }
             /*-----------------------------------------------*/       
-            if (fDist >= fFraction* fMeanBndLegLgth)
+            if (fDist >= fFraction*fMeanBndLegLgth)
             {       
                 StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
                 /*-----------------------------------------------*/ 
@@ -196,10 +194,12 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
                 fK_BB_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
                 fK_BB_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
                 /*-----------------------------------------------*/   
-                if (globi == (j+iFltPtchNum))       {       fKl_BB_SS[i] = fK_BB_SS[iVectPos];       fKl_BB_DD[i] = fK_BB_DD[iVectPos];      fKl_BB_OO[i] = fK_BB_OO[iVectPos];     }
+                if (i + iSTARTPOS_B[iRANK] == j)      
+                {       fKl_BB_SS[i] = fK_BB_SS[iVectPos];       fKl_BB_DD[i] = fK_BB_DD[iVectPos];      fKl_BB_OO[i] = fK_BB_OO[iVectPos];     
+                }
             }
             else
-            {   // iCntFlags++; 
+            {  
         }   }
         /*-----------------------------------------------*/        
         /*-----------------------------------------------*/            
@@ -213,9 +213,9 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
             GetPointOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut);
             /*-----------------------------------------------*/  
             iVectPos  = i*iBndPtchNum + j;
-            fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
+            fDist     = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
             /*-----------------------------------------------*/       
-            if (fDist >= fFraction*fMeanLegLgth)
+            if (fDist >= 0.0*fMeanLegLgth)
             {
                 StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
                 /*-----------------------------------------------*/ 
@@ -235,7 +235,7 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
                 /*-----------------------------------------------*/     
             }
             else
-            {   //iCntFlags++;
+            {   
     }   }   }
     /*----------------------------------------------------------------------------------*/    
     /*----------------------------------------------------------------------------------*/    
@@ -325,13 +325,10 @@ void GetLocKOS_inKmatrix(float fvNrm[3], float fvStk[3], float fvDip[3], const f
     fvStk[2]      = feZ[0]*fvNrm[1] - feZ[1]*fvNrm[0];
     /* For horizontal elements ("Vnorm(3)" adjusts for Northward or Southward direction) */
     fTempfloat    = sqrtf(fvStk[0]*fvStk[0] +fvStk[1]*fvStk[1] +fvStk[2]*fvStk[2]);
-    if (fTempfloat < 0.0)
-    {   fvStk[0] = 0.0;                 fvStk[1] = feY[1]*fvNrm[2];                 fvStk[2] = 0.0;        
-        /* For horizontal elements in case of half-space calculation!!! => Correct the strike vector of image dislocation only */
-        if (fP1[2] > 0.0)
-        {   fvStk[0] = -fvStk[0];       fvStk[1] = -fvStk[1];                       fvStk[2] = -fvStk[2];
-    }   }
-    fTempfloat  = sqrtf(fvStk[0]*fvStk[0] +fvStk[1]*fvStk[1] +fvStk[2]*fvStk[2]);
+    if (fTempfloat < FLT_EPSILON)
+    {   fvStk[0] = 0.0;                 fvStk[1] = 1.0;                 fvStk[2] = 0.0;
+        fTempfloat  = 1.0;        
+    }
     fvStk[0]    = fvStk[0]/fTempfloat;      fvStk[1] = fvStk[1]/fTempfloat;         fvStk[2] = fvStk[2]/fTempfloat;
     /*-----------------------------------------------*/  
     fvDip[0]    = fvNrm[1]*fvStk[2] - fvNrm[2]*fvStk[1];

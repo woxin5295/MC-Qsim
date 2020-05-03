@@ -214,7 +214,7 @@ void TDstressFS_inStrnHS(double StsMS[6], double StrMS[6],  double X, double Y, 
     Vstrike[2]   = eZ[0]*Vnorm[1] - eZ[1]*Vnorm[0];
     /* For horizontal elements ("Vnorm(3)" adjusts for Northward or Southward direction) */
     Tempdouble    = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
-     if (Tempdouble == 0.0)
+    if (Tempdouble < DBL_EPSILON)
     {   Vstrike[0] = 0.0 ;                  Vstrike[1] = eY[1]*Vnorm[2];            Vstrike[2]   = 0.0;        
         /* For horizontal elements in case of half-space calculation!!! => Correct the strike vector of image dislocation only */
         if (P1[2] > 0.0)
@@ -358,7 +358,7 @@ void TDstress_HarFunc_inStrnHS(double StsFSC[6], double StrFSC[6], double X, dou
     Vstrike[2]   = eZ[0]*Vnorm[1] - eZ[1]*Vnorm[0];
     /* For horizontal elements ("Vnorm(3)" adjusts for Northward or Southward direction) */
     Tempdouble    = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
-     if (Tempdouble == 0.0)
+    if (Tempdouble < DBL_EPSILON)
     {   Vstrike[0] = 0.0;                  Vstrike[1] = eY[1]*Vnorm[2];          Vstrike[2]   = 0.0;        
     }
      Tempdouble     = sqrt(  Vstrike[0]*Vstrike[0] +Vstrike[1]*Vstrike[1] + Vstrike[2]*Vstrike[2]);
