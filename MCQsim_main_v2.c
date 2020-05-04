@@ -146,6 +146,7 @@ int main(int argc, char **argv)
     int   iVectPos,                            iMaxSTFLength,                              STFcnt;
     int   iwritePos,                           ireadPos;
     float fdeltTincr,                          fTimeYears,                                 fMD_CutStrss = 50000.0; 
+    float fMD_CutStrssSlip;
     float fTempSlipStk,                        fTempSlipDip;
     float fTemp,                               fTemp1,                                     fTemp2;   
     float fTemp3,                              fStkSlip,                                   fDipSlip;            
@@ -383,8 +384,8 @@ int main(int argc, char **argv)
     if (iRANK == 0)            {         fprintf(stdout,"K-matrix done \n");                        }    
     /*-------------------------------------------------------------------*/  
     /*-------------------------------------------------------------------*/ 
- 
-    if (iRANK == 0)            {   fTemp =  fabs(fMD_CutStrss/fK_FF_SS[0]);   fprintf(stdout,"fMD_CutStrss: %f   , representing ~%f m of slip\n",fMD_CutStrss, fTemp);             }
+    fMD_CutStrssSlip =  fabs(fMD_CutStrss/fK_FF_SS[0]);
+    if (iRANK == 0)            {   fprintf(stdout,"fMD_CutStrss: %f   , representing ~%f m of slip\n",fMD_CutStrss, fMD_CutStrssSlip);             }
   
     for (i = 0; i < iOFFSET_F[iRANK]; i++)           {       if (fabs(fTDl_SlipRate[i]) > 0.0)       {   iTempInt_1[0] = 1;    }      }
 
@@ -460,6 +461,9 @@ int main(int argc, char **argv)
             MPI_Allreduce(fTempFlt_1, fTempFlt_2, 1 , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
             fTempFlt_2[0] /= (float)iSIZE;
             if (iRANK == 0) {       fprintf(stdout,"Resulting average slip-rate on faults (m/yr): %f \n",fTempFlt_2[0]);        }
+     
+     
+     
             
            
             if (iRANK == 0) {       fprintf(stdout,"Increase rate by %f \n",fTempFlt_3[0]/fTempFlt_2[0]*0.25);                       }
@@ -469,15 +473,14 @@ int main(int argc, char **argv)
 //so, averageing is not the right approach b/c the bounding box fault patches that are far from the main fault are getting too much weight
 //maybe better to look at the 95-percentile slip amount (right under fault?) and use that for scaling
 //something along these lines...            
-            
-            
-            
-            
-            
             for (i = 0; i < iOFFSET_B[iRANK]; i++)  //then the same thing for the boundary patches...
             {   fTDl_SlipOnBnd_H[i] *= fTempFlt_3[0]/fTempFlt_2[0] *0.25; /*ratio is wanted/observed => 0.1mm/yr / 0.01 mm/yr => factor 10*/
                 fTDl_SlipOnBnd_V[i] *= fTempFlt_3[0]/fTempFlt_2[0] *0.25;
             }
+            
+            
+            
+            
             /*---------------------------------------------------------------*/
             for (i = 0; i < iOFFSET_B[iRANK]; i++)  //then the same thing for the boundary patches...
             {    
@@ -521,12 +524,9 @@ int main(int argc, char **argv)
             }
             /*---------------------------------------------------------------*/ 
     }   }
+    
 /*---------------------------------------------------------------*/ 
-/*---------------------------------------------------------------*/ 
-//for (i = 0; i < iOFFSET_F[iRANK]; i++) 
-//{
-//fprintf(stdout,"%d    %f    %f\n",iRANK,  fTDl_RefStrssRateStk[i],  fTDl_RefStrssRateDip[i]);
-//}   
+/*---------------------------------------------------------------*/  
 MPI_File_delete("SelParameter.dat", MPI_INFO_NULL);
 MPI_File_open(MPI_COMM_WORLD, "SelParameter.dat", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
 if (iRANK == 0)                     {               MPI_File_write_at(fp_MPIout1,   0,  &iFltPtchNum,  1, MPI_INT, &status);                    }
@@ -534,9 +534,9 @@ MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int), 
     
 MPI_Barrier( MPI_COMM_WORLD );
 MPI_File_close(&fp_MPIout1);
+/*---------------------------------------------------------------*/ 
+/*---------------------------------------------------------------*/ 
 
-/*---------------------------------------------------------------*/ 
-/*---------------------------------------------------------------*/ 
     /*-------------------------------------------------------------------*/ 
     /*-------------------------------------------------------------------*/
     for (j = 0; j < iFltPtchNum;  j++)         {    fTempFltVect_1[j]   = 0.0;                fTempFltVect_2[j]   = 0.0;             fTempFltVect_3[j]   = 0.0;            } 
@@ -614,7 +614,6 @@ MPI_File_close(&fp_MPIout1);
 /*-------------------------------------------------------------------*/
 /*-------------------------------------------------------------------*/
 /*-------------------------------------------------------------------*/
-//fprintf(stdout,"test here 2\n");
     fTimeYears = 0.0;
     while (fTimeYears <= fRecLgth)
     {   fTimeYears      += fIntSeisTimeStp;
@@ -734,7 +733,6 @@ MPI_File_close(&fp_MPIout1);
             }   }
             /*-------------------------------------------------------------------*/
         }   
-  //      fprintf(stdout,"test here 2.2\n"); 
         /*------------------------------------------------------------------------------*/
         iTempInt_1[0] = 0;
         
@@ -760,20 +758,19 @@ MPI_File_close(&fp_MPIout1);
                 fTDl_StrssB4_V[i] += fTDl_CurStrssRateDip[i]*fIntSeisTimeStp;    
                 fTemp              = sqrtf (fTDl_StrssB4_H[i]*fTDl_StrssB4_H[i] +fTDl_StrssB4_V[i]*fTDl_StrssB4_V[i]);
                 fTemp1             = fTemp - fTDl_CurrFric[i]*(fTDl_RefNormStrss[i] +fTDl_StrssB4_N[i]); /*this is the amount of excess shear stress above current frictional strength*/
-           
-                if (fTemp1 > FLT_EPSILON) /*if I have excess above current strength*/
+
+                if (fTemp1 > fMD_CutStrss) /*if I have excess above current strength*/
                 {  
                     fTemp2 = -1.0*(fTemp1/fTemp *fTDl_StrssB4_H[i])/fK_FF_SS[iTDl_SelfLoc_F[i]]; /* horizontal slip at patch in current iteration (turn "n") */
                     fTemp3 = -1.0*(fTemp1/fTemp *fTDl_StrssB4_V[i])/fK_FF_DD[iTDl_SelfLoc_F[i]]; /* horizontal slip at patch in current iteration (turn "n") */
                             
                     for (j = 0; j < iFltPtchNum;  j++)
                     {   iVectPos = i*iFltPtchNum +j;
-                        fTempFltVect_1[j] += fTemp2*fK_FB_SS[iVectPos] + fTemp3*fK_FB_DS[iVectPos];
-                        fTempFltVect_2[j] += fTemp2*fK_FB_SD[iVectPos] + fTemp3*fK_FB_DD[iVectPos];
-                        fTempFltVect_3[j] += fTemp2*fK_FB_SO[iVectPos] + fTemp3*fK_FB_DO[iVectPos];
+                        fTempFltVect_1[j] += fTemp2*fK_FF_SS[iVectPos] + fTemp3*fK_FF_DS[iVectPos];
+                        fTempFltVect_2[j] += fTemp2*fK_FF_SD[iVectPos] + fTemp3*fK_FF_DD[iVectPos];
+                        fTempFltVect_3[j] += fTemp2*fK_FF_SO[iVectPos] + fTemp3*fK_FF_DO[iVectPos];
                 }   }    
         }   }
-    //    fprintf(stdout,"test here 2.5\n");
         MPI_Allreduce(iTempInt_1, iEQ_EQongoing, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
         
         MPI_Allreduce(fTempFltVect_1, fTDg_DeltStrssH, iFltPtchNum , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
@@ -786,7 +783,6 @@ MPI_File_close(&fp_MPIout1);
             fTDl_StrssB4_V[i] += fTDg_DeltStrssV[i+iSTARTPOS_F[iRANK]];
             fTDl_StrssB4_N[i] -= fTDg_DeltStrssN[i+iSTARTPOS_F[iRANK]];//use negative sign b/c K-matrix has normal stress increase to be negative (normal vector points outward so that positive value means extension; my normalstress is defined to be positive when compressive...
         }
-    //    fprintf(stdout,"test here 2.8\n");
         /*-------------------------------------------------------------------*/
         if (iEQ_EQongoing[0] == 1)    /* EARTHQUAKE STARTS */    
         {   iEQ_TotalRuptT[0] = -1;                              iEQ_MRFlength[0]      = -1;                          iEQcounter++;    
@@ -1114,7 +1110,7 @@ MPI_File_close(&fp_MPIout1);
                     fTDl_StrssB4_V[i]           = fTDl_CurStrss_V[i];  
                     fTDl_CurStrss_N[i]          = (fTDl_CurStrss_N[i] > 0.0) ? fTDl_CurStrss_N[i] : 0.0;                
 
-                     fTDl_StrssB4_N[i]           = fTDl_CurStrss_N[i] - fTDl_RefNormStrss[i]; 
+                    fTDl_StrssB4_N[i]           = fTDl_CurStrss_N[i] - fTDl_RefNormStrss[i]; 
                      
                     fTDl_PSeisStrssAt_t0_S_F[i] = sqrtf(fTDl_StrssB4_H[i]*fTDl_StrssB4_H[i] +fTDl_StrssB4_V[i]*fTDl_StrssB4_V[i]);  
                     fTDl_PSeisStrssAt_t0_N_F[i] = fabs(fTDl_StrssB4_N[i]);   
@@ -1130,7 +1126,6 @@ MPI_File_close(&fp_MPIout1);
                     fTDl_StrssB4_N[i] = 0.0;
                     /*means that I enforce that all patches (regardless of stabtype) have shear stress that is at or below static strength*/
                     /*for stick-slip patches, that should just be the applied stress; for non-stick-slip I remove the excess stress above static strength...*/        
-
             }   }
             /*------------------------------------------------------------------ */
             for (i = 0; i < iOFFSET_B[iRANK]; i++) 

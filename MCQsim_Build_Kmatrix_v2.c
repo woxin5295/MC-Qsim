@@ -34,7 +34,7 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
 
     float  fStress[6],         fStressOut[6];
     float  fTemp1,             fTemp2,         fDist;
-    float  fFraction = 0.3;
+    float  fFraction = 0.35;
     /*----------------------------------------------------------------------------------*/
     /*----------------------------------------------------------------------------------*/               
     for (j = 0; j < iFltPtchNum;  j++) /* going through the receivers */
