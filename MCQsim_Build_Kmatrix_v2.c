@@ -14,14 +14,14 @@ extern void   StrainHS_Nikkhoo(float Stress[6], float Strain[6], float X, float 
 void    RotateTensor_inKmatrix(float fsig_new[6], const float fsig[6], const float fvNrm[3], const float fvStk[3], const float fvDip[3], int iRotDir);
 void       GetLocKOS_inKmatrix(float fvNrm[3], float fvStk[3], float fvDip[3], const float fP1[3], const float fP2[3], const float fP3[3]);
 void             GetPointOrder(float P1in[3], float P2in[3], float P3in[3], float fP2s[3], float fP3s[3]);
-float           GetMinDistance(float fP1s[3], float fP2s[3], float fP3s[3], float fX,float fY, float fZ);
+float           GetMinDistance(float fP1s[3], float fP2s[3], float fP3s[3], float fX,float fY, float fZ, float MinDistance);
 
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
-void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const int *iTDg_SegID, const int *iTDl_SegID, const  int iFltPtchNum, const  int iBndPtchNum, const float fMDg_UnitSlip, const float fMeanLegLgth, const float fMeanBndLegLgth, const float *fMDg_ShearMod, const float *fMDg_Lambda, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fTDl_Curr_DcVal, const float *fTDl_StatFric, const float *fTDl_DynFric, const float *fTDl_RefNormStrss, const float *fTDl_Area, float *fK_FF_SS, float *fK_FF_SD, float *fK_FF_SO, float *fK_FF_DS, float *fK_FF_DD, float *fK_FF_DO, float *fK_FF_OS, float *fK_FF_OD, float *fK_FF_OO, float *fK_FB_SS, float *fK_FB_SD, float *fK_FB_SO, float *fK_FB_DS, float *fK_FB_DD, float *fK_FB_DO, float *fK_BF_SS, float *fK_BF_SD, float *fK_BF_SO, float *fK_BF_DS, float *fK_BF_DD, float *fK_BF_DO, float *fK_BF_OS, float *fK_BF_OD, float *fK_BF_OO, float *fK_BB_SS, float *fK_BB_SD, float *fK_BB_SO, float *fK_BB_DS, float *fK_BB_DD, float *fK_BB_DO, float *fK_BB_OS, float *fK_BB_OD, float *fK_BB_OO, float *fKl_BB_SS, float *fKl_BB_DD, float *fKl_BB_OO,  int *iTDl_SelfLoc_F,  int *iTDl_SelfLoc_B,  int *iTDl_StabType)
+void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const int *iTDg_SegID, const int *iTDl_SegID, const  int iFltPtchNum, const  int iBndPtchNum, const float fMDg_UnitSlip, const float fMeanLegLgth, const float fMeanBndLegLgth, const float *fMDg_ShearMod, const float *fMDg_Lambda, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fTDl_Curr_DcVal, const float *fTDl_StatFric, const float *fTDl_DynFric, const float *fTDl_RefNormStrss, const float *fTDl_Area, float *fK_FF_SS, float *fK_FF_SD, float *fK_FF_SO, float *fK_FF_DS, float *fK_FF_DD, float *fK_FF_DO, float *fK_FF_OS, float *fK_FF_OD, float *fK_FF_OO, float *fK_FB_SS, float *fK_FB_SD, float *fK_FB_SO, float *fK_FB_DS, float *fK_FB_DD, float *fK_FB_DO, float *fK_FB_OS, float *fK_FB_OD, float *fK_FB_OO, float *fK_BF_SS, float *fK_BF_SD, float *fK_BF_SO, float *fK_BF_DS, float *fK_BF_DD, float *fK_BF_DO, float *fK_BF_OS, float *fK_BF_OD, float *fK_BF_OO, float *fK_BB_SS, float *fK_BB_SD, float *fK_BB_SO, float *fK_BB_DS, float *fK_BB_DD, float *fK_BB_DO, float *fK_BB_OS, float *fK_BB_OD, float *fK_BB_OO, int *iTDl_SelfLoc_F,  int *iTDl_SelfLoc_B,  int *iTDl_StabType)
 {    
     int    i,                  j,              iVectPos;
     int    iCntFlags = 0;
@@ -62,10 +62,10 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
             } 
             else
             {   //https://www.mathematik-oberstufe.de/vektoren/a/abstand-punkt-gerade-formel.html
-                fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
+                fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ, fFraction*fMeanLegLgth);
             }
             /*-----------------------------------------------*/       
-            if ((fDist >= fFraction*fMeanLegLgth) || (iTDg_SegID[j] == iTDl_SegID[i]))
+            if ((fDist >= fFraction*fMeanLegLgth) )// || (iTDg_SegID[j] == iTDl_SegID[i]))
             {   /*-----------------------------------------------*/   
                 StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
                 /*-----------------------------------------------*/ 
@@ -89,7 +89,13 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
                 /*-----------------------------------------------*/ 
                 fK_FF_OS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
                 fK_FF_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
-                fK_FF_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;               
+                fK_FF_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+                
+                
+                if (globi == j)             
+                {   if ((fK_FF_SS[iVectPos] > 0.0) || (fK_FF_DD[iVectPos] > 0.0))
+                    fprintf(stdout,"\n\n self-induced stress is positive.....THIS SHOULD NOT HAPPEN AND MIGHT EXPLAIN THE ERRORS THAT SOMETIMES COME UP\n\n");
+                }          
             }
             else
             {   iCntFlags++; 
@@ -106,9 +112,9 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
             GetPointOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut);
             /*-----------------------------------------------*/
             iVectPos  = i*iFltPtchNum + j;
-            fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
+            fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ, fFraction*fMeanBndLegLgth);
             /*-----------------------------------------------*/       
-            if (fDist >= 0.0*fMeanBndLegLgth)
+            if (fDist >= fFraction*fMeanBndLegLgth)
             {   /*-----------------------------------------------*/
                 StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
                 /*-----------------------------------------------*/ 
@@ -165,7 +171,7 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
                 fDist             = fFraction*fMeanBndLegLgth;                 
             } 
             else
-            {   fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
+            {   fDist = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ, fFraction*fMeanBndLegLgth);
             }
             /*-----------------------------------------------*/       
             if (fDist >= fFraction*fMeanBndLegLgth)
@@ -194,9 +200,6 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
                 fK_BB_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
                 fK_BB_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
                 /*-----------------------------------------------*/   
-                if (i + iSTARTPOS_B[iRANK] == j)      
-                {       fKl_BB_SS[i] = fK_BB_SS[iVectPos];       fKl_BB_DD[i] = fK_BB_DD[iVectPos];      fKl_BB_OO[i] = fK_BB_OO[iVectPos];     
-                }
             }
             else
             {  
@@ -213,9 +216,9 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
             GetPointOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut);
             /*-----------------------------------------------*/  
             iVectPos  = i*iBndPtchNum + j;
-            fDist     = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ);
+            fDist     = GetMinDistance(fP1s, fP2s, fP3s, fX, fY, fZ, fFraction*fMeanLegLgth);
             /*-----------------------------------------------*/       
-            if (fDist >= 0.0*fMeanLegLgth)
+            if (fDist >= fFraction*fMeanLegLgth)
             {
                 StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, fMDg_UnitSlip, 0.0, 0.0, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in stk */            
                 /*-----------------------------------------------*/ 
@@ -232,7 +235,15 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
                 fK_FB_DS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip;
                 fK_FB_DD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
                 fK_FB_DO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;   
-                /*-----------------------------------------------*/     
+                /*-----------------------------------------------*/                                 
+                StrainHS_Nikkhoo(fStress, fStressOut, fX, fY, fZ, fP1s, fP2sOut, fP3sOut, 0.0, 0.0, fMDg_UnitSlip, fMDg_ShearMod[0], fMDg_Lambda[0]);         /* slip in normal */            
+                /*-----------------------------------------------*/ 
+                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+                /*-----------------------------------------------*/ 
+                fK_FB_OS[iVectPos]  = fStressOut[1]/fMDg_UnitSlip; 
+                fK_FB_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
+                fK_FB_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
+                /*-----------------------------------------------*/  
             }
             else
             {   
@@ -241,7 +252,7 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
     /*----------------------------------------------------------------------------------*/    
     for (i = 0; i < iOFFSET_F[iRANK]; i++)
     {   /*determine friction difference, use together with reference normal stress to get stress drop; get corresponding slip amount, compare with Dc => assign type    */        
-        fTemp1 = (fTDl_DynFric[i] - fTDl_StatFric[i]) *fTDl_RefNormStrss[i];
+        fTemp1 = (fTDl_DynFric[i] - fTDl_StatFric[i]) *-1.0*fTDl_RefNormStrss[i]; //multiply with -1.0 to get normal stress now to compressive positive
         fTemp2 = fTemp1/(fK_FF_SS[iTDl_SelfLoc_F[i]] < fK_FF_DD[iTDl_SelfLoc_F[i]] ? fK_FF_SS[iTDl_SelfLoc_F[i]] : fK_FF_DD[iTDl_SelfLoc_F[i]]);
         
         if (fTemp2 > fTDl_Curr_DcVal[i]) /* have stress drop when going from stat to dyn friction and that drop i.e., corresponding slip is larger than Dc*/
@@ -367,38 +378,72 @@ void GetPointOrder(float fP1in[3], float fP2in[3], float fP3in[3], float fP2s[3]
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
- float GetMinDistance(float fP1s[3], float fP2s[3], float fP3s[3], float fX, float fY, float fZ)
- {  
-    float  fDist,           fTemp;
-    float  fTemp1[3],       fTemp2[3],      fTemp3[3];
+ float GetMinDistance(float fP1s[3], float fP2s[3], float fP3s[3], float fX, float fY, float fZ,  float MinDistance)
+ {  /*https://www.mathematik-oberstufe.de/vektoren/a/abstand-punkt-gerade-lot.html*/
+    float  fDist1,           fDist2,         fDist3,            fDist4,         fTemp;
+    float  fThisDist = INFINITY; //just a starting value
+    float  fTemp1[3],       fTemp2[3];
     /*--------------------------------------------------*/
+    //for P2-P1 vector i.e., triangle leg
     fTemp1[0] = fP2s[0] - fP1s[0];              fTemp1[1] = fP2s[1] - fP1s[1];              fTemp1[2] = fP2s[2] - fP1s[2];
-    fTemp2[0] = fX      - fP1s[0];              fTemp2[1] = fY      - fP1s[1];              fTemp2[2] = fZ      - fP1s[2];
-    fTemp3[0] = fTemp1[1]*fTemp2[2] -fTemp1[2]*fTemp2[1];
-    fTemp3[1] = fTemp1[2]*fTemp2[0] -fTemp1[0]*fTemp2[2];
-    fTemp3[2] = fTemp1[0]*fTemp2[1] -fTemp1[1]*fTemp2[0];           
-    fDist     = sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);  
-    /*--------------------------------------------------*/
-    fTemp1[0] = fP1s[0] - fP3s[0];              fTemp1[1] = fP1s[1] - fP3s[1];              fTemp1[2] = fP1s[2] - fP3s[2];
-    fTemp2[0] = fX      - fP3s[0];              fTemp2[1] = fY      - fP3s[1];              fTemp2[2] = fZ      - fP3s[2];
-    fTemp3[0] = fTemp1[1]*fTemp2[2] -fTemp1[2]*fTemp2[1];
-    fTemp3[1] = fTemp1[2]*fTemp2[0] -fTemp1[0]*fTemp2[2];
-    fTemp3[2] = fTemp1[0]*fTemp2[1] -fTemp1[1]*fTemp2[0];      
+    fDist1    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P1 to P2 distance*/
     
-    //fDist    += sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);     
-    fTemp     = sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);  
-    fDist     = (fDist < fTemp) ? fDist : fTemp;
-    /*--------------------------------------------------*/
+    fTemp     = fTemp1[0]*fX + fTemp1[1]*fY + fTemp1[2]*fZ; 
+    fTemp     = (fTemp -fTemp1[0]*fX -fTemp1[1]*fY -fTemp1[2]*fZ)/(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] + fTemp1[2]*fTemp1[2]);
+    fTemp2[0] = fP1s[0] +fTemp*fTemp1[0];       fTemp2[1] = fP1s[1] +fTemp*fTemp1[1];       fTemp2[2] = fP1s[2] +fTemp*fTemp1[2]; /*this (fTemp2) is the schnittpunkt*/
+    
+    fTemp1[0] = fTemp2[0] - fP1s[0];              fTemp1[1] =fTemp2[1] - fP1s[1];            fTemp1[2] = fTemp2[2] - fP1s[2];
+    fDist2    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P1 to Schnittpunkt distance*/
+
+    fTemp1[0] = fTemp2[0] - fP2s[0];              fTemp1[1] =fTemp2[1] - fP2s[1];            fTemp1[2] = fTemp2[2] - fP2s[2];
+    fDist3    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P2 to Schnittpunkt distance*/
+
+    fTemp1[0] = fTemp2[0] - fX;              fTemp1[1] =fTemp2[1] - fY;            fTemp1[2] = fTemp2[2] - fZ;
+    fDist4    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is Schnittpunkt to ObsPoint distance*/
+
+    if ((fDist2 <= (fDist1+MinDistance)) && (fDist3 <= (fDist1+MinDistance))) /*if both Schnittpunkt-Point lengths are equal or smaller than Point to Point length, then the Schnittpunkt lies between them and I have to check the distance*/
+    {   fThisDist = (fDist4 < fThisDist) ? fDist4 : fThisDist;
+    }
+    //for P3-P1 vector i.e., triangle leg
+    fTemp1[0] = fP3s[0] - fP1s[0];              fTemp1[1] = fP3s[1] - fP1s[1];              fTemp1[2] = fP3s[2] - fP1s[2];
+    fDist1    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P1 to P3 distance*/
+    
+    fTemp     = fTemp1[0]*fX + fTemp1[1]*fY + fTemp1[2]*fZ; 
+    fTemp     = (fTemp -fTemp1[0]*fX -fTemp1[1]*fY -fTemp1[2]*fZ)/(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] + fTemp1[2]*fTemp1[2]);
+    fTemp2[0] = fP1s[0] +fTemp*fTemp1[0];         fTemp2[1] = fP1s[1] +fTemp*fTemp1[1];        fTemp2[2] = fP1s[2] +fTemp*fTemp1[2]; /*this (fTemp2) is the schnittpunkt*/
+    
+    fTemp1[0] = fTemp2[0] - fP1s[0];              fTemp1[1] =fTemp2[1] - fP1s[1];            fTemp1[2] = fTemp2[2] - fP1s[2];
+    fDist2    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P1 to Schnittpunkt distance*/
+
+    fTemp1[0] = fTemp2[0] - fP3s[0];              fTemp1[1] =fTemp2[1] - fP3s[1];            fTemp1[2] = fTemp2[2] - fP3s[2];
+    fDist3    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P3 to Schnittpunkt distance*/
+
+    fTemp1[0] = fTemp2[0] - fX;                   fTemp1[1] =fTemp2[1] - fY;                fTemp1[2] = fTemp2[2] - fZ;
+    fDist4    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is Schnittpunkt to ObsPoint distance*/
+
+    if ((fDist2 <= (fDist1+MinDistance)) && (fDist3 <= (fDist1+MinDistance))) /*if both Schnittpunkt-Point lengths are equal or smaller than Point to Point length, then the Schnittpunkt lies between them and I have to check the distance*/
+    {   fThisDist = (fDist4 < fThisDist) ? fDist4 : fThisDist;
+    }
+    //for P2-P3 vector i.e., triangle leg
     fTemp1[0] = fP3s[0] - fP2s[0];              fTemp1[1] = fP3s[1] - fP2s[1];              fTemp1[2] = fP3s[2] - fP2s[2];
-    fTemp2[0] = fX      - fP2s[0];              fTemp2[1] = fY      - fP2s[1];              fTemp2[2] = fZ      - fP2s[2];
-    fTemp3[0] = fTemp1[1]*fTemp2[2] -fTemp1[2]*fTemp2[1];
-    fTemp3[1] = fTemp1[2]*fTemp2[0] -fTemp1[0]*fTemp2[2];
-    fTemp3[2] = fTemp1[0]*fTemp2[1] -fTemp1[1]*fTemp2[0];                
+    fDist1    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P2 to P3 distance*/
     
-    //fDist     = sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);  
-    fTemp     = sqrtf(fTemp3[0]*fTemp3[0] + fTemp3[1]*fTemp3[1] + fTemp3[2]*fTemp3[2]) /sqrtf(fTemp1[0]*fTemp1[0] +fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]);    
-    fDist     = (fDist < fTemp) ? fDist : fTemp;
+    fTemp     = fTemp1[0]*fX + fTemp1[1]*fY + fTemp1[2]*fZ; 
+    fTemp     = (fTemp -fTemp1[0]*fX -fTemp1[1]*fY -fTemp1[2]*fZ)/(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] + fTemp1[2]*fTemp1[2]);
+    fTemp2[0] = fP1s[0] +fTemp*fTemp1[0];         fTemp2[1] = fP1s[1] +fTemp*fTemp1[1];        fTemp2[2] = fP1s[2] +fTemp*fTemp1[2]; /*this (fTemp2) is the schnittpunkt*/
+    
+    fTemp1[0] = fTemp2[0] - fP2s[0];              fTemp1[1] =fTemp2[1] - fP2s[1];            fTemp1[2] = fTemp2[2] - fP2s[2];
+    fDist2    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P2 to Schnittpunkt distance*/
+
+    fTemp1[0] = fTemp2[0] - fP3s[0];              fTemp1[1] =fTemp2[1] - fP3s[1];            fTemp1[2] = fTemp2[2] - fP3s[2];
+    fDist3    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is P3 to Schnittpunkt distance*/
+
+    fTemp1[0] = fTemp2[0] - fX;                   fTemp1[1] =fTemp2[1] - fY;                 fTemp1[2] = fTemp2[2] - fZ;
+    fDist4    = sqrtf(fTemp1[0]*fTemp1[0] + fTemp1[1]*fTemp1[1] +fTemp1[2]*fTemp1[2]); /*this is Schnittpunkt to ObsPoint distance*/
+
+    if ((fDist2 <= (fDist1+MinDistance)) && (fDist3 <= (fDist1+MinDistance))) /*if both Schnittpunkt-Point lengths are equal or smaller than Point to Point length, then the Schnittpunkt lies between them and I have to check the distance*/
+    {   fThisDist = (fDist4 < fThisDist) ? fDist4 : fThisDist;
+    }
     /*--------------------------------------------------*/
-    //fDist /=3.0;
-    return fDist;
+    return fThisDist;
  }

@@ -30,8 +30,8 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
     if ((fp1 = fopen(cFileName1,"r")) == NULL)         {          printf("Error -cant open *.flt file. LoadInputParameter function...\n");      exit(10);     }
     
     retch =fgets(ctempVals, 512, fp1);                            sscanf(ctempVals,"%*s %e",&fMD_MedDense[0]);    
-    retch =fgets(ctempVals, 512, fp1);                            sscanf(ctempVals,"%*s %e",&fMD_AddNrmStrss[0]);                 fMD_AddNrmStrss[0] *= 1.0E+6; /* convert from MPa to Pa*/
-    retch =fgets(ctempVals, 512, fp1);                            sscanf(ctempVals,"%*s %e",&fMD_ShearMod[0]);                    fMD_ShearMod[0]    *= 1.0E+9; /* convert from GPa to Pa*/
+    retch =fgets(ctempVals, 512, fp1);                            sscanf(ctempVals,"%*s %e",&fMD_AddNrmStrss[0]);                 fMD_AddNrmStrss[0] *= -1.0E+6; /* convert from MPa to Pa; use negative to convert from compressive=positive to compressive=negative*/
+    retch =fgets(ctempVals, 512, fp1);                            sscanf(ctempVals,"%*s %e",&fMD_ShearMod[0]);                    fMD_ShearMod[0]    *=  1.0E+9; /* convert from GPa to Pa*/
     retch =fgets(ctempVals, 512, fp1);                            sscanf(ctempVals,"%*s %e",&fMD_Poisson[0]);
     retch =fgets(ctempVals, 512, fp1);                            sscanf(ctempVals,"%*s %d",&iMD_ChgFricBtwEQs[0]);        
      
@@ -191,7 +191,7 @@ void  DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSE
         /*---------------------------------------------------------------------------------*/
         GetLocKOS_inLoadInput(fvNrm, fvStk, fvDip, fP1, fP2, fP3);
         /*---------------------------------------------------------------------------------*/
-        fTDl_RefNormStrss[i] =  (fMD_MedDense[0] *fMD_g *fabs(fTDg_CentZpos[globi])) + fMD_AddNrmStrss[0]; /* all in Pa */
+        fTDl_RefNormStrss[i] = -1.0*(fMD_MedDense[0] *fMD_g *fabs(fTDg_CentZpos[globi])) + fMD_AddNrmStrss[0]; /* all in Pa; again -1 to convert to compressive=negative */
         /*---------------------------------------------------------------------------------*/
         fTDl_Area[i]         = 0.5*sqrtf( fP1P2crossP1P3[0]*fP1P2crossP1P3[0] +fP1P2crossP1P3[1]*fP1P2crossP1P3[1] +fP1P2crossP1P3[2]*fP1P2crossP1P3[2]);
         /*---------------------------------------------------------------------------------*/     
