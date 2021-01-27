@@ -11,8 +11,8 @@
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 /*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 float              ran0_inmain(long *idum);
-extern void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int iRealizNum,const int iUsdGrid, const int iFltSegmNum, const int iFltPtchNum, const int iBndPtchNum, const int iFltVertNum, const int iBndVertNum, const float *fSD_StrssRate, const float *fSD_SlipRate, const float *fSD_SlipRake,  int *iMD_ChgFricBtwEQs, float *fMD_AddNrmStrss, float *fMD_Vp, float *fMD_Vs, float *fMD_Poisson, float *fMD_Lambda, float *fMD_ShearMod, float *fMD_MedDense,  int *iSD_FricLawUSED,  float *fSD_RefStatFric, float *fSD_RefStatFr_vari, float *fSD_RefDynFric, float *fSD_RefDynFr_vari, float *fSD_CritSlipDist, float *fSD_CritSlipD_vari, int *iTDg_V1,  int *iTDg_V2,  int *iTDg_V3, int *iTDl_SegID, float *fVDg_Epos, float *fVDg_Npos, float *fVDg_Zpos,float *fTDg_CentEpos, float *fTDg_CentNpos, float *fTDg_CentZpos,float *fTDl_RefStatFric, float *fTDl_RefDynFric, float *fTDl_StatFric, float *fTDl_DynFric,int   *iTDl_StabType, float *fTDl_RefStrssRateStk, float *fTDl_RefStrssRateDip, float *fTDl_SlipRate, float *fTDl_SlipRake, float *fTDl_CurrFric);
-extern void    DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const  int iFltPtchNum, const  int iBndPtchNum, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const  int *iTDl_SegID, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fSD_CritSlipDist, const float *fSD_CritSlipD_vari, const float *fMD_Vp, const float *fMD_VpVsRatio, const float *fMD_MedDense, const float *fMD_AddNrmStrss, const float fMD_g, const float fdeltTincr, const float *fRandVector, const  int iRandNumber,  int *iRandPos, int *iTDlg_TravTimesP,  int *iTDlg_TravTimesS,  int *iMD_GlobTTmax, float *fTDl_Area, float *fTDl_RefNormStrss, float *fTDl_RefDcVal, float *fTDl_Curr_DcVal, float *fTDlg_LocSrcRcv_H, float *fTDlg_LocSrcRcv_V, float *fTDlg_LocSrcRcv_N);
+extern void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int iRealizNum,const int iUsdGrid, const int iFltSegmNum, const int iFltPtchNum, const int iBndPtchNum, const int iFltVertNum, const int iBndVertNum, const float fMeanLegLgth, const float *fRandVector, const  int iRandNumber,  int *iRandPos, const float *fSD_StrssRate, const float *fSD_SlipRate, const float *fSD_SlipRake,  int *iMD_ChgFricBtwEQs, float *fMD_AddNrmStrss, float *fMD_Vp, float *fMD_Vs, float *fMD_Poisson, float *fMD_Lambda, float *fMD_ShearMod, float *fMD_MedDense,  int *iSD_FricLawUSED,  float *fSD_RefStatFric, float *fSD_RefStatFr_vari, float *fSD_RefDynFric, float *fSD_RefDynFr_vari, float *fSD_CritSlipDist, float *fSD_CritSlipD_vari, int *iTDg_V1,  int *iTDg_V2,  int *iTDg_V3, int *iTDl_SegID, float *fVDg_Epos, float *fVDg_Npos, float *fVDg_Zpos,float *fTDg_CentEpos, float *fTDg_CentNpos, float *fTDg_CentZpos,float *fTDl_RefStatFric, float *fTDl_RefDynFric, float *fTDl_StatFric, float *fTDl_DynFric, float *fTDl_RefDcVal, float *fTDl_Curr_DcVal,  int *iTDl_StabType, float *fTDl_RefStrssRateStk, float *fTDl_RefStrssRateDip, float *fTDl_SlipRate, float *fTDl_SlipRake, float *fTDl_CurrFric);
+extern void    DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const  int iFltPtchNum, const  int iBndPtchNum, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const  int *iTDl_SegID, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fSD_CritSlipDist, const float *fSD_CritSlipD_vari, const float *fMD_Vp, const float *fMD_VpVsRatio, const float *fMD_MedDense, const float *fMD_AddNrmStrss, const float fMD_g, const float fdeltTincr, int *iTDlg_TravTimesP,  int *iTDlg_TravTimesS,  int *iMD_GlobTTmax, float *fTDl_Area, float *fTDl_RefNormStrss, float *fTDlg_LocSrcRcv_H, float *fTDlg_LocSrcRcv_V, float *fTDlg_LocSrcRcv_N);
 
 extern void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const int *iTDg_SegID, const int *iTDl_SegID, const  int iFltPtchNum, const  int iBndPtchNum, const float fMDg_UnitSlip, const float fMeanLegLgth, const float fMeanBndLegLgth, const float *fMDg_ShearMod, const float *fMDg_Lambda, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fTDl_Curr_DcVal, const float *fTDl_StatFric, const float *fTDl_DynFric, const float *fTDl_RefNormStrss, const float *fTDl_Area, float *fK_FF_SS, float *fK_FF_SD, float *fK_FF_SO, float *fK_FF_DS, float *fK_FF_DD, float *fK_FF_DO, float *fK_FF_OS, float *fK_FF_OD, float *fK_FF_OO, float *fK_FB_SS, float *fK_FB_SD, float *fK_FB_SO, float *fK_FB_DS, float *fK_FB_DD, float *fK_FB_DO, float *fK_FB_OS, float *fK_FB_OD, float *fK_FB_OO, float *fK_BF_SS, float *fK_BF_SD, float *fK_BF_SO, float *fK_BF_DS, float *fK_BF_DD, float *fK_BF_DO, float *fK_BF_OS, float *fK_BF_OD, float *fK_BF_OO, float *fK_BB_SS, float *fK_BB_SD, float *fK_BB_SO, float *fK_BB_DS, float *fK_BB_DD, float *fK_BB_DO, float *fK_BB_OS, float *fK_BB_OD, float *fK_BB_OO, int *iTDl_SelfLoc_F,  int *iTDl_SelfLoc_B,  int *iTDl_StabType);
 
@@ -24,6 +24,10 @@ extern void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const in
 int main(int argc, char **argv)
 {   if ((argc < 10) || (argc > 12) ) {   fprintf(stdout,"Input Error\n Please start the code in the following way:\n\n mpirun -n 4 ./Run_MCQsim InputName RealizationNumber GridNumber IntSeisTimeStep UseRuptProp UsePostSeis ViscoDeepRelax ViscoAfterSlip  EQrecordLength OPTIONAL:seedvalue(integer > 0)\nfor example:\nmpirun -n 4 ./Run_MCQsim TestRun4k 1 1 3 1 1 3.0E+16 1.0E+16  5000  4342");        exit(10);           }
     /*-------------------------------------------------------------------*/
+    
+    int       iPrintBeforeAfter  = 1;
+    float     fEQsizeForPrinting = 7.0;  
+    
     int       i,              j,                  k,               stfpos;
     int       iRANK,          iSIZE;
     
@@ -79,6 +83,7 @@ int main(int argc, char **argv)
     FILE   *fpIn;  
     lMemoryCounter += sizeof(int)*8 +sizeof(float)*3 +sizeof(char)*2048;
     /*----------------------------*/
+    
     strcpy(cFile1_In,  argv[1]);                            strcat(cFile1_In,"_FLT.txt");
     strcpy(cFile2_In,  argv[1]);                            strcat(cFile2_In,"_BND.txt");
     strcpy(cFile1_Out, argv[1]);                            strcat(cFile1_Out,"_");             strcat(cFile1_Out,argv[2]);   strcat(cFile1_Out,"_");       strcat(cFile1_Out,argv[3]);     strcat(cFile1_Out,"_Catalog.dat");
@@ -151,7 +156,7 @@ int main(int argc, char **argv)
     /*----------------------------------------------------------------------------------*/  
     int   iEQcounter      = 0,                          iMaxMRFlength  = 10000; 
     int   iMaxIteration;
-    float fMD_UnitSlip    = 1.0E-4*fMeanLegLgth; /* slip in meter => if meanleglength is 1000m, then a slip of .01m is used */
+    float fMD_UnitSlip    = 1.0E-4*fMeanLegLgth; /* slip in meter => if meanleglength is 1000m, then a slip of .1m is used */
     float fMD_g           = 9.81;                     
     float fIntSeisTimeStp = fIntSeisStep/365.25,        fTimeStpInSecs = fIntSeisTimeStp*31536000.0; /* now the time is in seconds */
     int   iVectPos,                            iMaxSTFLength,                              STFcnt;
@@ -374,7 +379,7 @@ int main(int argc, char **argv)
     lMemoryCounter += sizeof(int)*2 +sizeof(int)*3*iFltPtchNum +sizeof(float)*3 + sizeof(float)*14*iFltPtchNum + sizeof(float)*12*iBndPtchNum;   
     /*-------------------------------------------------------------------*/  
     /*-------------------------------------------------------------------*/  
-    LoadInputParameter(argv, iRANK, iSTARTPOS_F, iOFFSET_F, iRealizNum, iUsdGrid, iFltSegmNum, iFltPtchNum, iBndPtchNum, iFltVertNum, iBndVertNum, fSD_StrssRate, fSD_SlipRate, fSD_SlipRake, iMD_ChgFricBtwEQs, fMD_AddNrmStrss, fMD_Vp, fMD_Vs, fMD_Poisson, fMD_Lambda, fMD_ShearMod, fMD_MedDense, iSD_FricLawUSED, fSD_RefStatFric, fSD_RefStatFr_vari, fSD_RefDynFric, fSD_RefDynFr_vari, fSD_CritSlipDist, fSD_CritSlipD_vari, iTDg_V1, iTDg_V2, iTDg_V3, iTDl_SegID, fVDg_Epos, fVDg_Npos, fVDg_Zpos, fTDg_CentEpos, fTDg_CentNpos, fTDg_CentZpos, fTDl_RefStatFric, fTDl_RefDynFric, fTDl_StatFric, fTDl_DynFric, iTDl_StabType, fTDl_RefStrssRateStk, fTDl_RefStrssRateDip, fTDl_SlipRate, fTDl_SlipRake, fTDl_CurrFric); 
+    LoadInputParameter(argv, iRANK, iSTARTPOS_F, iOFFSET_F, iRealizNum, iUsdGrid, iFltSegmNum, iFltPtchNum, iBndPtchNum, iFltVertNum, iBndVertNum, fMeanLegLgth, fRandVector, iRandNumber, iRandPos, fSD_StrssRate, fSD_SlipRate, fSD_SlipRake, iMD_ChgFricBtwEQs, fMD_AddNrmStrss, fMD_Vp, fMD_Vs, fMD_Poisson, fMD_Lambda, fMD_ShearMod, fMD_MedDense, iSD_FricLawUSED, fSD_RefStatFric, fSD_RefStatFr_vari, fSD_RefDynFric, fSD_RefDynFr_vari, fSD_CritSlipDist, fSD_CritSlipD_vari, iTDg_V1, iTDg_V2, iTDg_V3, iTDl_SegID, fVDg_Epos, fVDg_Npos, fVDg_Zpos, fTDg_CentEpos, fTDg_CentNpos, fTDg_CentZpos, fTDl_RefStatFric, fTDl_RefDynFric, fTDl_StatFric, fTDl_DynFric, fTDl_RefDcVal, fTDl_Curr_DcVal, iTDl_StabType, fTDl_RefStrssRateStk, fTDl_RefStrssRateDip, fTDl_SlipRate, fTDl_SlipRake, fTDl_CurrFric); 
     /*-------------------------------------------------------------------*/  
     /*-------------------------------------------------------------------*/  
     //fMD_VpVsRatio[0] = fMD_Vp[0]/fMD_Vs[0];
@@ -384,7 +389,7 @@ int main(int argc, char **argv)
     for (i = 0; i < iOFFSET_F[iRANK]; i++)          {       iTDg_SegID[i + iSTARTPOS_F[iRANK]] = iTDl_SegID[i];                 }
     MPI_Allreduce(MPI_IN_PLACE, iTDg_SegID, iFltPtchNum, MPI_INT, MPI_MAX, MPI_COMM_WORLD); 
     /*-------------------------------------------------------------------*/    
-    if (iUseRuptProp == 1)  {       fdeltTincr = 2.0*fMeanLegLgth/fMD_Vp[0];                 fdeltTincr = floorf(fdeltTincr*100.0)/100.0;           }
+    if (iUseRuptProp == 1)  {       fdeltTincr = 1.0*fMeanLegLgth/fMD_Vp[0];                 fdeltTincr = floorf(fdeltTincr*100.0)/100.0;           }
     else                    {       fdeltTincr = 1.0E+09;                                                                                           }
     if (iRANK == 0)      
     {   
@@ -407,7 +412,7 @@ int main(int argc, char **argv)
     }
     /*-------------------------------------------------------------------*/  
     /*-------------------------------------------------------------------*/  
-    DefineMoreParas(iRANK, iSTARTPOS_F, iOFFSET_F, iSTARTPOS_B, iOFFSET_B, iFltPtchNum, iBndPtchNum, iTDg_V1, iTDg_V2, iTDg_V3, iTDl_SegID, fTDg_CentEpos, fTDg_CentNpos, fTDg_CentZpos, fVDg_Epos, fVDg_Npos, fVDg_Zpos, fSD_CritSlipDist, fSD_CritSlipD_vari, fMD_Vp, fMD_VpVsRatio, fMD_MedDense, fMD_AddNrmStrss, fMD_g, fdeltTincr, fRandVector, iRandNumber, iRandPos, iTDlg_TravTimesP, iTDlg_TravTimesS, iMD_GlobTTmax, fTDl_Area, fTDl_RefNormStrss, fTDl_RefDcVal, fTDl_Curr_DcVal, fTDlg_LocSrcRcv_H, fTDlg_LocSrcRcv_V, fTDlg_LocSrcRcv_N);
+    DefineMoreParas(iRANK, iSTARTPOS_F, iOFFSET_F, iSTARTPOS_B, iOFFSET_B, iFltPtchNum, iBndPtchNum, iTDg_V1, iTDg_V2, iTDg_V3, iTDl_SegID, fTDg_CentEpos, fTDg_CentNpos, fTDg_CentZpos, fVDg_Epos, fVDg_Npos, fVDg_Zpos, fSD_CritSlipDist, fSD_CritSlipD_vari, fMD_Vp, fMD_VpVsRatio, fMD_MedDense, fMD_AddNrmStrss, fMD_g, fdeltTincr, iTDlg_TravTimesP, iTDlg_TravTimesS, iMD_GlobTTmax, fTDl_Area, fTDl_RefNormStrss, fTDlg_LocSrcRcv_H, fTDlg_LocSrcRcv_V, fTDlg_LocSrcRcv_N);
     /*-------------------------------------------------------------------*/  
     /*-------------------------------------------------------------------*/     
 
@@ -415,6 +420,9 @@ int main(int argc, char **argv)
     
     iMaxSTFLength  = iMD_GlobTTmax[0] +5;//try a higher value, to make sure I really have room for everything and don't miss something, only too small would be an issue as I would overwrite info that is still needed
     if (iRANK == 0)            {         fprintf(stdout,"MaxSTFlength =  %d\n",  iMaxSTFLength);    }
+    
+    
+    if (iRANK == 0)            {         fprintf(stdout,"MeanLegLength =  %f     and CurrDCVal %f \n",  fMeanLegLgth, fTDl_Curr_DcVal[0]);    }
     
     float *fTDlg_STF_H;        fTDlg_STF_H       = (float *)  calloc(iOFFSET_F[iRANK]*iMaxSTFLength, sizeof(float)); 
     float *fTDlg_STF_V;        fTDlg_STF_V       = (float *)  calloc(iOFFSET_F[iRANK]*iMaxSTFLength, sizeof(float));    
@@ -544,12 +552,13 @@ int main(int argc, char **argv)
             }
             fTempFlt_1[0]  /= (float)iFltPtchNum;       fTempFlt_2[0]  /= (float)iFltPtchNum;
             fTemp = fTempFlt_1[0]/fTempFlt_2[0];
-            fTempFlt_1[0] = 0.0;                        fTempFlt_2[0] = 0.0;   
-            //if (iRANK == 0) {       fprintf(stdout,"boundaryRate = %f  and backslipRate = %f \n\n",fTempFlt_1[0],fTempFlt_2[0]);        }
+               
+            if (iRANK == 0) {       fprintf(stdout,"boundaryRate = %f  and backslipRate = %f \n\n",fTempFlt_1[0],fTempFlt_2[0]);        }
             for (i = 0; i < iOFFSET_F[iRANK]; i++) 
             {   fTDl_RefStrssRateStk[i] += fTDg_DeltStrssH[i+iSTARTPOS_F[iRANK]]/fTemp;                
                 fTDl_RefStrssRateDip[i] += fTDg_DeltStrssV[i+iSTARTPOS_F[iRANK]]/fTemp;    
             } 
+            fTempFlt_1[0] = 0.0;                        fTempFlt_2[0] = 0.0;
            /*---------------------------------------------------------------*/ 
         }
         else //boundary box faults are not defined; use classic back-slip that only involves the interaction fault patches
@@ -584,24 +593,40 @@ int main(int argc, char **argv)
     fTempFlt_1[0] /= (float)iSIZE;
     if (iRANK == 0) {       fprintf(stdout,"Prescribed average stressing-rate on faults (Pa/yr): %6.1f \n",fTempFlt_1[0]);       }
     fTempFlt_1[0] = 0.0;
-/*---------------------------------------------------------------*/ 
-/*---------------------------------------------------------------*/  
-/* here i can write out some parameter of interest => in binary format...*/
-//for (i = 0; i < iOFFSET_F[iRANK]; i++)
-//{
-//   fTDl_TempLocl[i] =  (fTDl_CurrFric[i]-fTDl_DynFric[i])*fTDl_RefNormStrss[i];
-//}
-//MPI_File_delete("SelParameterBEFORE.dat", MPI_INFO_NULL);
-//MPI_File_open(MPI_COMM_WORLD, "SelParameterBEFORE.dat", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
-//if (iRANK == 0)                     {               MPI_File_write_at(fp_MPIout1,   0,  &iFltPtchNum,  1, MPI_INT, &status);                    }
-//MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int),   fTDl_TempLocl,          iOFFSET_F[iRANK],  MPI_FLOAT,   &status);
-//MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int), fTDl_RefStrssRateStk,   iOFFSET_F[iRANK],  MPI_FLOAT,   &status);  
-//MPI_Barrier( MPI_COMM_WORLD );
-//MPI_File_close(&fp_MPIout1);
-/*think about saving other parameters as well (for the paper to have nice figures)*/
-/*---------------------------------------------------------------*/ 
-/*---------------------------------------------------------------*/ 
+    /*---------------------------------------------------------------*/ 
+    /*---------------------------------------------------------------*/  
+    if (iPrintBeforeAfter == 1)
+    {
+        /* here i can write out some parameter of interest => in binary format...*/
+        for (i = 0; i < iOFFSET_F[iRANK]; i++)
+        {
+          fTDl_TempLocl[i] =  (fTDl_CurrFric[i]-fTDl_DynFric[i])*fTDl_RefNormStrss[i];
+        }
+        strcpy(ctempVals,  argv[1]);
+        strcat(ctempVals,"_StrengthBefore.dat");
 
+        MPI_File_delete(ctempVals, MPI_INFO_NULL);
+        MPI_File_open(MPI_COMM_WORLD, ctempVals, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
+        if (iRANK == 0)                     {               MPI_File_write_at(fp_MPIout1,   0,  &iFltPtchNum,  1, MPI_INT, &status);                    }
+        MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int),   fTDl_TempLocl,          iOFFSET_F[iRANK],  MPI_FLOAT,   &status);
+        MPI_Barrier( MPI_COMM_WORLD );
+        MPI_File_close(&fp_MPIout1);
+        /*---------------------------------------------------------------*/  
+        for (i = 0; i < iOFFSET_F[iRANK]; i++)
+        {
+          fTDl_TempLocl[i] =  sqrtf(fTDl_RefStrssRateStk[i]*fTDl_RefStrssRateStk[i] + fTDl_RefStrssRateDip[i]*fTDl_RefStrssRateDip[i]);
+
+        }
+        strcpy(ctempVals,  argv[1]);
+        strcat(ctempVals,"_LoadingRateBefore.dat");
+
+        MPI_File_delete(ctempVals, MPI_INFO_NULL);
+        MPI_File_open(MPI_COMM_WORLD, ctempVals, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
+        if (iRANK == 0)                     {               MPI_File_write_at(fp_MPIout1,   0,  &iFltPtchNum,  1, MPI_INT, &status);                    }
+        MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int),   fTDl_TempLocl,          iOFFSET_F[iRANK],  MPI_FLOAT,   &status);
+        MPI_Barrier( MPI_COMM_WORLD );
+        MPI_File_close(&fp_MPIout1);
+    }
     /*-------------------------------------------------------------------*/ 
     /*-------------------------------------------------------------------*/
     for (i = 0; i < iOFFSET_F[iRANK]; i++)
@@ -1048,6 +1073,8 @@ int main(int argc, char **argv)
             
             MPI_Barrier( MPI_COMM_WORLD );
             
+            fTemp2 = (log10f(fTempFlt_1[0]*fMD_ShearMod[0])-9.1)/1.5; 
+            
             if (iRANK == 0)
             {
                 fTemp2 = (log10f(fTempFlt_1[0]*fMD_ShearMod[0])-9.1)/1.5; 
@@ -1076,8 +1103,28 @@ int main(int argc, char **argv)
             
             MPI_Barrier( MPI_COMM_WORLD );
             MPI_File_close(&fp_MPIout1);
-               
-            /*------------------------------------------------------------------------- */        
+            /*------------------------------------------------------------------------- */
+            /*------------------------------------------------------------------------- */   
+            
+            if ((iPrintBeforeAfter == 1) && (fTemp2 >= fEQsizeForPrinting))
+            {   /* here i can write out some parameter of interest => in binary format...*/
+                for (i = 0; i < iOFFSET_F[iRANK]; i++)
+                {
+                    fTDl_TempLocl[i] =  sqrt(fTDl_StrssB4_H[i]*fTDl_StrssB4_H[i] + fTDl_StrssB4_V[i]*fTDl_StrssB4_V[i]) - sqrt(fTDl_CurStrss_H[i]*fTDl_CurStrss_H[i] + fTDl_CurStrss_V[i]*fTDl_CurStrss_V[i]);
+                }
+                strcpy(ctempVals,  argv[1]);
+                strcat(ctempVals,"_CoSeisStressChange.dat");
+
+                MPI_File_delete(ctempVals, MPI_INFO_NULL);
+                MPI_File_open(MPI_COMM_WORLD, ctempVals, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
+                if (iRANK == 0)                     {               MPI_File_write_at(fp_MPIout1,   0,  &iFltPtchNum,  1, MPI_INT, &status);                    }
+                MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int),   fTDl_TempLocl,          iOFFSET_F[iRANK],  MPI_FLOAT,   &status);
+                MPI_Barrier( MPI_COMM_WORLD );
+                MPI_File_close(&fp_MPIout1);
+            }
+            
+            /*------------------------------------------------------------------------- */
+            /*------------------------------------------------------------------------- */           
             for (i = 0; i < iOFFSET_F[iRANK]; i++) 
             {   if (iUsePostSeismic == 1)
                 {   fTDl_StrssB4_H[i]           = fTDl_CurStrss_H[i];
@@ -1117,12 +1164,13 @@ int main(int argc, char **argv)
                     {    fTDl_CurrFric[i]     = fTDl_StatFric[i];
                     }
                     else   
-                    {   fTDl_StatFric[i]   = fTDl_RefStatFric[i] *(1.0 +(fRandVector[iRandPos[0]]*2.0 -1.0) *fSD_RefStatFr_vari[iTDl_SegID[i]]/100.0);       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }       
-                        fTDl_CurrFric[i]   = fTDl_StatFric[i];
-                        fTDl_DynFric[i]    = fTDl_RefDynFric[i]  *(1.0 +(fRandVector[iRandPos[0]]*2.0 -1.0) *fSD_RefDynFr_vari[ iTDl_SegID[i]]/100.0);       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }  
-                        fTDl_Curr_DcVal[i] = fTDl_RefDcVal[i]    *(1.0 +(fRandVector[iRandPos[0]]*2.0 -1.0) *fSD_CritSlipD_vari[iTDl_SegID[i]]/100.0);       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }      
+                    {   fTDl_Curr_DcVal[i]      = fTDl_RefDcVal[i]    +    fTDl_RefDcVal[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_CritSlipD_vari[iTDl_SegID[i]]/100.0;      iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }
+                        fTDl_StatFric[i]        = fTDl_RefStatFric[i] + fTDl_RefStatFric[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_RefStatFr_vari[iTDl_SegID[i]]/100.0;      iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }
+                        fTDl_CurrFric[i]        = fTDl_StatFric[i];
+        
+                        fTDl_DynFric[i]         = fTDl_RefDynFric[i]  + fTDl_RefStatFric[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_RefDynFr_vari[ iTDl_SegID[i]]/100.0;      iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }
+                        fTDl_DynFric[i]        += fTDl_StatFric[i] - fTDl_RefStatFric[i];
                         /* test now again for stability type, while doing that check if any type was changed, if not then I don't have to recompute, if change is from cond stable to stable then I only change label, only if it goes from unstable to another state or vice versa, is it that I need to update loading*/
-
                         fTemp1 = (fTDl_DynFric[i] - fTDl_StatFric[i]) *-1.0*fTDl_RefNormStrss[i]; /* this is the releasable stress amount*/
                         fTemp2 = fTemp1/(fK_FF_SS[iTDl_SelfLoc_F[i]] > fK_FF_DD[iTDl_SelfLoc_F[i]] ? fK_FF_SS[iTDl_SelfLoc_F[i]] : fK_FF_DD[iTDl_SelfLoc_F[i]]);/* this is corresponding slip, sign is correct -> assuming that K-matrix at self-induced location is ALWAYS negative; take the larger value of K because that give smaller slip amount => if the smaller is larger than Dc, then the patch is definitely/correctly an unstable patch*/
 
@@ -1158,25 +1206,42 @@ int main(int argc, char **argv)
         }
         MPI_Barrier( MPI_COMM_WORLD );
     }
-    
     /*---------------------------------------------------------------*/ 
     /*---------------------------------------------------------------*/  
-//    for (i = 0; i < iOFFSET_F[iRANK]; i++)    
-//    {
-//        fTDl_TempLocl[i] =  (fTDl_CurrFric[i]-fTDl_DynFric[i])*fTDl_RefNormStrss[i];
-//    }
-//    
-//    MPI_File_delete("SelParameterAFTER.dat", MPI_INFO_NULL);
-//    MPI_File_open(MPI_COMM_WORLD, "SelParameterAFTER.dat", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
-//    if (iRANK == 0)                     {               MPI_File_write_at(fp_MPIout1,   0,  &iFltPtchNum,  1, MPI_INT, &status);                    }
-//    MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int),   fTDl_TempLocl,          iOFFSET_F[iRANK],  MPI_FLOAT,   &status);
-//    //MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int), fTDl_RefStrssRateStk,   iOFFSET_F[iRANK],  MPI_FLOAT,   &status);
-//    
-//    MPI_Barrier( MPI_COMM_WORLD );
-//    MPI_File_close(&fp_MPIout1);
-//    /*think about saving other parameters as well (for the paper to have nice figures)*/
-    /*---------------------------------------------------------------*/ 
-    /*---------------------------------------------------------------*/ 
+    if (iPrintBeforeAfter == 1)
+    {
+        /* here i can write out some parameter of interest => in binary format...*/
+        for (i = 0; i < iOFFSET_F[iRANK]; i++)
+        {
+          fTDl_TempLocl[i] =  (fTDl_CurrFric[i]-fTDl_DynFric[i])*fTDl_RefNormStrss[i];
+        }
+        strcpy(ctempVals,  argv[1]);
+        strcat(ctempVals,"_StrengthAfter.dat");
+
+        MPI_File_delete(ctempVals, MPI_INFO_NULL);
+        MPI_File_open(MPI_COMM_WORLD, ctempVals, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
+        if (iRANK == 0)                     {               MPI_File_write_at(fp_MPIout1,   0,  &iFltPtchNum,  1, MPI_INT, &status);                    }
+        MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int),   fTDl_TempLocl,          iOFFSET_F[iRANK],  MPI_FLOAT,   &status);
+        MPI_Barrier( MPI_COMM_WORLD );
+        MPI_File_close(&fp_MPIout1);
+        /*---------------------------------------------------------------*/  
+        for (i = 0; i < iOFFSET_F[iRANK]; i++)
+        {
+          fTDl_TempLocl[i] =  sqrtf(fTDl_RefStrssRateStk[i]*fTDl_RefStrssRateStk[i] + fTDl_RefStrssRateDip[i]*fTDl_RefStrssRateDip[i]);
+
+        }
+        strcpy(ctempVals,  argv[1]);
+        strcat(ctempVals,"_LoadingRateAfter.dat");
+
+        MPI_File_delete(ctempVals, MPI_INFO_NULL);
+        MPI_File_open(MPI_COMM_WORLD, ctempVals, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
+        if (iRANK == 0)                     {               MPI_File_write_at(fp_MPIout1,   0,  &iFltPtchNum,  1, MPI_INT, &status);                    }
+        MPI_File_write_at(fp_MPIout1,    1*sizeof(int) +iSTARTPOS_F[iRANK]*sizeof(int),   fTDl_TempLocl,          iOFFSET_F[iRANK],  MPI_FLOAT,   &status);
+        MPI_Barrier( MPI_COMM_WORLD );
+        MPI_File_close(&fp_MPIout1);
+    }
+    /*-------------------------------------------------------------------*/ 
+    /*-------------------------------------------------------------------*/
     MPI_File_open(MPI_COMM_WORLD, cFile1_Out, MPI_MODE_WRONLY, MPI_INFO_NULL, &fp_MPIout1);
     if (iRANK == 0)            {  MPI_File_write_at(fp_MPIout1, 0, &iEQcounter, 1, MPI_INT,  &status);            }
     MPI_File_close(&fp_MPIout1);

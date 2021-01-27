@@ -9,7 +9,7 @@
 /*-------------------------------------------------------------------*/
 void GetLocKOS_inLoadInput(float fvNrm[3], float fvStk[3], float fvDip[3], const float fP1[3], const float fP2[3], const float fP3[3]);
 
-void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int iRealizNum,const int iUsdGrid, const int iFltSegmNum, const int iFltPtchNum, const int iBndPtchNum, const int iFltVertNum, const int iBndVertNum, const float *fSD_StrssRate, const float *fSD_SlipRate, const float *fSD_SlipRake,  int *iMD_ChgFricBtwEQs, float *fMD_AddNrmStrss, float *fMD_Vp, float *fMD_Vs, float *fMD_Poisson, float *fMD_Lambda, float *fMD_ShearMod, float *fMD_MedDense,  int *iSD_FricLawUSED,  float *fSD_RefStatFric, float *fSD_RefStatFr_vari, float *fSD_RefDynFric, float *fSD_RefDynFr_vari, float *fSD_CritSlipDist, float *fSD_CritSlipD_vari, int *iTDg_V1,  int *iTDg_V2,  int *iTDg_V3, int *iTDl_SegID, float *fVDg_Epos, float *fVDg_Npos, float *fVDg_Zpos,float *fTDg_CentEpos, float *fTDg_CentNpos, float *fTDg_CentZpos, float *fTDl_RefStatFric, float *fTDl_RefDynFric, float *fTDl_StatFric, float *fTDl_DynFric,int   *iTDl_StabType, float *fTDl_RefStrssRateStk, float *fTDl_RefStrssRateDip, float *fTDl_SlipRate, float *fTDl_SlipRake, float *fTDl_CurrFric)
+void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int iRealizNum,const int iUsdGrid, const int iFltSegmNum, const int iFltPtchNum, const int iBndPtchNum, const int iFltVertNum, const int iBndVertNum, const float fMeanLegLength, const float *fRandVector, const  int iRandNumber,  int *iRandPos, const float *fSD_StrssRate, const float *fSD_SlipRate, const float *fSD_SlipRake,  int *iMD_ChgFricBtwEQs, float *fMD_AddNrmStrss, float *fMD_Vp, float *fMD_Vs, float *fMD_Poisson, float *fMD_Lambda, float *fMD_ShearMod, float *fMD_MedDense,  int *iSD_FricLawUSED,  float *fSD_RefStatFric, float *fSD_RefStatFr_vari, float *fSD_RefDynFric, float *fSD_RefDynFr_vari, float *fSD_CritSlipDist, float *fSD_CritSlipD_vari, int *iTDg_V1,  int *iTDg_V2,  int *iTDg_V3, int *iTDl_SegID, float *fVDg_Epos, float *fVDg_Npos, float *fVDg_Zpos,float *fTDg_CentEpos, float *fTDg_CentNpos, float *fTDg_CentZpos, float *fTDl_RefStatFric, float *fTDl_RefDynFric, float *fTDl_StatFric, float *fTDl_DynFric, float *fTDl_RefDcVal, float *fTDl_Curr_DcVal, int   *iTDl_StabType, float *fTDl_RefStrssRateStk, float *fTDl_RefStrssRateDip, float *fTDl_SlipRate, float *fTDl_SlipRake, float *fTDl_CurrFric)
 {
     /*-------------------------------------------*/
     char     cFileName1[512];       strcpy(cFileName1,argv[1]);         strcat(cFileName1,"_Summary_RoughStrength.txt");
@@ -103,11 +103,11 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
     fseek(fp2, 1L*sizeof(int),     SEEK_CUR); /* contains the patch number again -> skipped */
     /*-------------------------------------------*/
     fseek(fp2, (1L*sizeof(float)*(long)(iSTARTPOS_F[iRANK])), SEEK_CUR); /*skip the part that is in front of segId for specific RANK*/
-    ret =fread(fTDl_StatFric, sizeof(float),iOFFSET_F[iRANK],fp2);   /*read the SegID for specific RANK; first realization of STATIC friction coefficient */
+    ret =fread(fTDl_RefStatFric, sizeof(float),iOFFSET_F[iRANK],fp2);   /*read the SegID for specific RANK; first realization of STATIC friction coefficient */
     fseek(fp2, (1L*sizeof(float)*(long)(iFltPtchNum -iSTARTPOS_F[iRANK]-iOFFSET_F[iRANK])), SEEK_CUR); /*skip over to end of SegIDs => in total i will have moved by iFltPtchNum*/
 
     fseek(fp2, (1L*sizeof(float)*(long)(iSTARTPOS_F[iRANK])), SEEK_CUR); /*skip the part that is in front of segId for specific RANK*/
-    ret =fread(fTDl_DynFric, sizeof(float),iOFFSET_F[iRANK],fp2);   /*read the SegID for specific RANK; first realization of DYNAMIC friction coefficient */
+    ret =fread(fTDl_RefDynFric, sizeof(float),iOFFSET_F[iRANK],fp2);   /*read the SegID for specific RANK; first realization of DYNAMIC friction coefficient */
     fseek(fp2, (1L*sizeof(float)*(long)(iFltPtchNum -iSTARTPOS_F[iRANK]-iOFFSET_F[iRANK])), SEEK_CUR); /*skip over to end of SegIDs => in total i will have moved by iFltPtchNum*/
 
     fseek(fp2, (1L*sizeof(int)*(long)(iSTARTPOS_F[iRANK])), SEEK_CUR); /*skip the part that is in front of segId for specific RANK*/
@@ -160,10 +160,15 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
         fTDl_RefStrssRateDip[i] = sinf(fSD_SlipRake[iTDl_SegID[i]]) *fSD_StrssRate[iTDl_SegID[i]];
         fTDl_SlipRate[i]        = fSD_SlipRate[iTDl_SegID[i]];
         fTDl_SlipRake[i]        = fSD_SlipRake[iTDl_SegID[i]];
+        
+        fTDl_RefDcVal[i]        = fSD_CritSlipDist[iTDl_SegID[i]]*fMeanLegLength;
+        fTDl_Curr_DcVal[i]      = fTDl_RefDcVal[i]    +    fTDl_RefDcVal[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_CritSlipD_vari[iTDl_SegID[i]]/100.0;       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }   
+
+        fTDl_StatFric[i]        = fTDl_RefStatFric[i] + fTDl_RefStatFric[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_RefStatFr_vari[iTDl_SegID[i]]/100.0;       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }       
         fTDl_CurrFric[i]        = fTDl_StatFric[i];
         
-        fTDl_RefStatFric[i]     = fTDl_StatFric[i];
-        fTDl_RefDynFric[i]      = fTDl_DynFric[i];
+        fTDl_DynFric[i]         = fTDl_RefDynFric[i]  + fTDl_RefStatFric[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_RefDynFr_vari[ iTDl_SegID[i]]/100.0;       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }  
+        fTDl_DynFric[i]        += fTDl_StatFric[i] - fTDl_RefStatFric[i];
     }
     /*---------------------------------------------------------------------------------*/
     return;
@@ -172,7 +177,7 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
 /*---------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------*/
-void  DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const  int iFltPtchNum, const  int iBndPtchNum, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const  int *iTDl_SegID, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fSD_CritSlipDist, const float *fSD_CritSlipD_vari, const float *fMD_Vp, const float *fMD_VpVsRatio, const float *fMD_MedDense, const float *fMD_AddNrmStrss, const float fMD_g, const float fdeltTincr, const float *fRandVector, const  int iRandNumber,  int *iRandPos, int *iTDlg_TravTimesP, int *iTDlg_TravTimesS, int *iMD_GlobTTmax, float *fTDl_Area, float *fTDl_RefNormStrss, float *fTDl_RefDcVal, float *fTDl_Curr_DcVal, float *fTDlg_LocSrcRcv_H, float *fTDlg_LocSrcRcv_V, float *fTDlg_LocSrcRcv_N)
+void  DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSET_F, const int *iSTARTPOS_B, const int *iOFFSET_B, const  int iFltPtchNum, const  int iBndPtchNum, const  int *iTDg_V1, const  int *iTDg_V2, const  int *iTDg_V3, const  int *iTDl_SegID, const float *fTDg_CentEpos, const float *fTDg_CentNpos, const float *fTDg_CentZpos, const float *fVDg_Epos, const float *fVDg_Npos, const float *fVDg_Zpos, const float *fSD_CritSlipDist, const float *fSD_CritSlipD_vari, const float *fMD_Vp, const float *fMD_VpVsRatio, const float *fMD_MedDense, const float *fMD_AddNrmStrss, const float fMD_g, const float fdeltTincr, int *iTDlg_TravTimesP, int *iTDlg_TravTimesS, int *iMD_GlobTTmax, float *fTDl_Area, float *fTDl_RefNormStrss, float *fTDlg_LocSrcRcv_H, float *fTDlg_LocSrcRcv_V, float *fTDlg_LocSrcRcv_N)
 {
     int     i,              j,              iVectPos,        globi;
     float   fTempP,         fTempS,         fTemp;
@@ -202,11 +207,7 @@ void  DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSE
         /*---------------------------------------------------------------------------------*/
         fTDl_Area[i]         = 0.5*sqrtf( fP1P2crossP1P3[0]*fP1P2crossP1P3[0] +fP1P2crossP1P3[1]*fP1P2crossP1P3[1] +fP1P2crossP1P3[2]*fP1P2crossP1P3[2]);
         /*---------------------------------------------------------------------------------*/     
-        fTDl_Curr_DcVal[i]   = fSD_CritSlipDist[iTDl_SegID[i]] *(1.0 + (fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_CritSlipD_vari[iTDl_SegID[i]]/100.0  );  
-        fTDl_RefDcVal[i]     = fTDl_Curr_DcVal[i];
-        
-        iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     } //this respawns new position of randPos somewhere in range of zero to randnumber-1     
-                /*---------------------------------------------------------------------------------*/
+
         for (j = 0; j < iFltPtchNum;  j++)
         {   iVectPos                 = i*iFltPtchNum + j;
             fTempP                   = sqrtf( (fTDg_CentEpos[globi]-fTDg_CentEpos[j])*(fTDg_CentEpos[globi]-fTDg_CentEpos[j]) + (fTDg_CentNpos[globi]-fTDg_CentNpos[j])*(fTDg_CentNpos[globi]-fTDg_CentNpos[j]) + (fTDg_CentZpos[globi]-fTDg_CentZpos[j])*(fTDg_CentZpos[globi]-fTDg_CentZpos[j]) )/fMD_Vp[0]; /* the distance between both */

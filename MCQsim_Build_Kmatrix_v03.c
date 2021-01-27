@@ -91,7 +91,6 @@ void     Build_K_Matrix(const int iRANK, const int *iSTARTPOS_F, const int *iOFF
                 fK_FF_OD[iVectPos]  = fStressOut[2]/fMDg_UnitSlip;
                 fK_FF_OO[iVectPos]  = fStressOut[0]/fMDg_UnitSlip;
                 
-                
                 if (globi == j)             
                 {   if ((fK_FF_SS[iVectPos] > 0.0) || (fK_FF_DD[iVectPos] > 0.0))
                     fprintf(stdout,"\n\n self-induced stress is positive.....THIS SHOULD NOT HAPPEN AND MIGHT EXPLAIN THE ERRORS THAT SOMETIMES COME UP\n\n");
