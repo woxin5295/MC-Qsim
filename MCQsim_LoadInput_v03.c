@@ -50,7 +50,12 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
         retch =fgets(ctempVals, 512, fp1);                        sscanf(ctempVals,"%*s %e", &fSD_CritSlipDist[i]);    
         retch =fgets(ctempVals, 512, fp1);                        sscanf(ctempVals,"%*s %e", &fSD_CritSlipD_vari[i]);            
         for (j = 0; j < 12;    j++)                     {         retch =fgets(ctempVals, 512, fp1);                            }
+        
+        if (iSD_FricLawUSED[i] == 1)                    {           fSD_CritSlipDist[i] = 0.0;  fSD_CritSlipD_vari[i] = 0.0;    }
+        
     }
+    
+    
     fclose(fp1);
     /*---------------------------------------------------------------------------------*/
     if ((fp1 = fopen(cFileName2,"rb"))     == NULL)   {   printf("Error -cant open %s LoadInputParameter function...\n",cFileName2);      exit(10);     }
@@ -155,7 +160,7 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
     }/* the minus 1 is to bring the index to be conform with C standard, starting at "0" */
     /*---------------------------------------------------------------------------------*/
     for (i = 0; i < iOFFSET_F[iRANK]; i++)
-    {   iTDl_SegID[i]     -= 1; 
+    {   iTDl_SegID[i]          -= 1; 
         fTDl_RefStrssRateStk[i] = cosf(fSD_SlipRake[iTDl_SegID[i]]) *fSD_StrssRate[iTDl_SegID[i]];
         fTDl_RefStrssRateDip[i] = sinf(fSD_SlipRake[iTDl_SegID[i]]) *fSD_StrssRate[iTDl_SegID[i]];
         fTDl_SlipRate[i]        = fSD_SlipRate[iTDl_SegID[i]];
@@ -163,12 +168,13 @@ void LoadInputParameter(char **argv, const int iRANK, const int *iSTARTPOS_F, co
         
         fTDl_RefDcVal[i]        = fSD_CritSlipDist[iTDl_SegID[i]]*fMeanLegLength;
         fTDl_Curr_DcVal[i]      = fTDl_RefDcVal[i]    +    fTDl_RefDcVal[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_CritSlipD_vari[iTDl_SegID[i]]/100.0;       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }   
-
+        
         fTDl_StatFric[i]        = fTDl_RefStatFric[i] + fTDl_RefStatFric[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_RefStatFr_vari[iTDl_SegID[i]]/100.0;       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }       
         fTDl_CurrFric[i]        = fTDl_StatFric[i];
-        
-        fTDl_DynFric[i]         = fTDl_RefDynFric[i]  + fTDl_RefStatFric[i] *(fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_RefDynFr_vari[ iTDl_SegID[i]]/100.0;       iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }  
-        fTDl_DynFric[i]        += fTDl_StatFric[i] - fTDl_RefStatFric[i];
+
+        fTemp1                  = (fTDl_RefStatFric[i] - fTDl_RefDynFric[i])/fTDl_RefStatFric[i] *100.0;
+        fTemp1                 += (fRandVector[iRandPos[0]]*2.0 -1.0)*fSD_RefDynFr_vari[ iTDl_SegID[i]];             iRandPos[0]++;      if (iRandPos[0] >= iRandNumber) {   iRandPos[0] = rand() % iRandNumber;     }  
+        fTDl_DynFric[i]         = fTDl_CurrFric[i] - fTDl_CurrFric[i]*fTemp1/100.0;
     }
     /*---------------------------------------------------------------------------------*/
     return;
@@ -230,7 +236,7 @@ void  DefineMoreParas(const int iRANK, const int *iSTARTPOS_F, const int *iOFFSE
                 fSrcRcvVect[0]          /= fTemp;                fSrcRcvVect[1] /= fTemp;                fSrcRcvVect[2] /= fTemp; 
                 /*---------------------------------------------------------------------------------*/                    
                 fTDlg_LocSrcRcv_N[iVectPos]    = fvNrm[0]*fSrcRcvVect[0] + fvNrm[1]*fSrcRcvVect[1] + fvNrm[2]*fSrcRcvVect[2]; /*this rotates the vector from current source to receiver*/
-                fTDlg_LocSrcRcv_H[iVectPos]    = fvStk[0]*fSrcRcvVect[0] + fvStk[1]*fSrcRcvVect[1] + fvStk[2]*fSrcRcvVect[2]; /*into local coordinate system (that is the idea...)*/
+                fTDlg_LocSrcRcv_H[iVectPos]    = fvStk[0]*fSrcRcvVect[0] + fvStk[1]*fSrcRcvVect[1] + fvStk[2]*fSrcRcvVect[2]; /*into local coordinate system of the source patch(that is the idea...)*/
                 fTDlg_LocSrcRcv_V[iVectPos]    = fvDip[0]*fSrcRcvVect[0] + fvDip[1]*fSrcRcvVect[1] + fvDip[2]*fSrcRcvVect[2];                
     }   }   }
     /*---------------------------------------------------------------------------------*/
