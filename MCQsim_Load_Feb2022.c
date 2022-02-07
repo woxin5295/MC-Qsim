@@ -172,8 +172,6 @@ void LoadInput(struct MDstruct *MD, struct SGstruct *SG, struct TRstruct *TR, st
     fseek(fp2,(1L*sizeof(  int)*(long)(MD->iFPNum - MD->ivF_START[MD->iRANK] - MD->ivF_OFFSET[MD->iRANK])), SEEK_CUR); //skip over to end of SegIDs => in total i will have moved by MD->iFPNum
      //fseek(fp2,(1L*sizeof(int)*(long)MD->iFPNum), SEEK_CUR); // this is fault ID => but don't need it => skip over it 
     if (fread(TR->ivFG_FltID_temp, sizeof(int),MD->iFPNum,fp2) != MD->iFPNum)	{	exit(10);	}
-
-
     //-------------------------------------
 	fseek(fp2,(2L*sizeof(float)*(long) MD->iFVNum), SEEK_CUR); // this would be local coordintates (from gridding) of the vertices..; not needed 
     

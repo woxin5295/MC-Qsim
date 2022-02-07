@@ -136,7 +136,7 @@ int main(int argc, char **argv)
     int    	iPlot2Screen   = 1; //for testing and to ensure that code runs ok
 	int		iMinPtch4Cat   = 5; //to not include those small events from saved catalog
     int     iUseVpAndVs    = 1;
-	float   fMinSlipForCat = 0.01; //at least 1mm slip on patch to be put into EQcatalog
+	float   fMinSlipForCat = 0.005; //at least 1mm slip on patch to be put into EQcatalog
     //------------------------------------------------------------------
     MPI_Init(&argc, &argv); //initializing MPI
     MPI_Comm_rank(MPI_COMM_WORLD, &MD.iRANK);
@@ -197,18 +197,12 @@ int main(int argc, char **argv)
     if ((iPlot2Screen == 1) && (MD.iRANK == 0)) //making sure that the data were imported from file correctly
     {	fprintf(stdout,"Number of RANKS: %d\n",MD.iSIZE);					
 		fprintf(stdout,"System info: Byte Size for FLOAT: %lu     INT: %lu    \n\n", sizeof(float), sizeof(int));
-		fprintf(stdout,"FileName:           %s\n",MD.cInputName);				    
-		fprintf(stdout,"RunNumber:          %d\n",MD.iRunNum);	
-    	fprintf(stdout,"UsedGrid:           %d\n",MD.iFUsdGrd);					
-		fprintf(stdout,"UsePostSeis:        %d\n",MD.iUsePSeis);
-        fprintf(stdout,"UseRuptProp:        %d\n",MD.iUseProp);	                
-		fprintf(stdout,"MinMag2UseRuptProp: %f\n",MD.fMinMag4Prop);
-    	fprintf(stdout,"IntSeisTStep:       %3.1f\n",MD.fISeisStep);
-    	fprintf(stdout,"ViscDeepRlx:        %3.1f\n",MD.fViscRelTime);			
-		fprintf(stdout,"ViscAftSlip:        %3.1f\n",MD.fAftrSlipTime);
-    	fprintf(stdout,"RecLength:          %5.1f\n",MD.fRecLgth);				
-		fprintf(stdout,"CoSeisHealFraction: %5.1f\n",MD.fHealFact);	
-		fprintf(stdout,"SeedLocation:       %5d\n\n",MD.iSeedStart);
+		fprintf(stdout,"FileName:           %s\n",MD.cInputName);		 		fprintf(stdout,"RunNumber:          %d\n",MD.iRunNum);	
+		fprintf(stdout,"UsedGrid:           %d\n",MD.iFUsdGrd);					fprintf(stdout,"UsePostSeis:        %d\n",MD.iUsePSeis);
+        fprintf(stdout,"UseRuptProp:        %d\n",MD.iUseProp);	                fprintf(stdout,"MinMag2UseRuptProp: %f\n",MD.fMinMag4Prop);
+    	fprintf(stdout,"IntSeisTStep:       %3.1f\n",MD.fISeisStep);			fprintf(stdout,"ViscDeepRlx:        %3.1f\n",MD.fViscRelTime);			
+		fprintf(stdout,"ViscAftSlip:        %3.1f\n",MD.fAftrSlipTime);			fprintf(stdout,"RecLength:          %5.1f\n",MD.fRecLgth);				
+		fprintf(stdout,"CoSeisHealFraction: %5.1f\n",MD.fHealFact);				fprintf(stdout,"SeedLocation:       %5d\n\n",MD.iSeedStart);
     }
     //------------------------------------------------------------------
     //------------------------------------------------------------------
@@ -541,7 +535,7 @@ int main(int argc, char **argv)
 				//--------------------------------------------------
 			}
 			//--------------------------------------------------
-			gsl_blas_sgemv(CblasTrans, 1.0, K.BF_SS, fvBG_Temp3, 0.0, fvFL_Temp0); 					gsl_blas_sgemv(CblasTrans, 1.0, K.BF_SD, fvBG_Temp3, 0.0, fvFL_Temp1); 
+			gsl_blas_sgemv(CblasTrans, 1.0, K.BF_SS, fvBG_Temp3, 0.0, fvFL_Temp0); 					gsl_blas_sgemv(CblasTrans, 1.0, K.BF_SD, fvBG_Temp3, 0.0, fvFL_Temp1); 				
 			gsl_vector_float_add(TR.fvFL_CurStrsH, fvFL_Temp0);										gsl_vector_float_add(TR.fvFL_CurStrsV, fvFL_Temp1);
 			gsl_blas_sgemv(CblasTrans, 1.0, K.BF_DS, fvBG_Temp4, 0.0, fvFL_Temp0);					gsl_blas_sgemv(CblasTrans, 1.0, K.BF_DD, fvBG_Temp4, 0.0, fvFL_Temp1); 
 			gsl_vector_float_add(TR.fvFL_CurStrsH, fvFL_Temp0);										gsl_vector_float_add(TR.fvFL_CurStrsV, fvFL_Temp1);
@@ -573,9 +567,14 @@ int main(int argc, char **argv)
 		//gsl_vector_float_add(TR.fvFL_StrsRateStk, TR.fvFL_CurStrsH);			gsl_vector_float_add(TR.fvFL_StrsRateDip, TR.fvFL_CurStrsV);
         //TEST
         for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++)  //going through the boundary faults to iteratively release the stress that was put onto them by the EQfaults => the corresponding slip to achieve that is stored and defines the boundary fault loading 
-        {   fTemp0 = sqrtf( gsl_vector_float_get(TR.fvFL_CurStrsH,i)*gsl_vector_float_get(TR.fvFL_CurStrsH,i) + gsl_vector_float_get(TR.fvFL_CurStrsV,i)*gsl_vector_float_get(TR.fvFL_CurStrsV,i) );
-            fTemp1 = fTemp0*cosf(TR.fvFL_SlipRake_temp[i]);
-            fTemp2 = fTemp0*sinf(TR.fvFL_SlipRake_temp[i]);
+        { //  fTemp0 = sqrtf( gsl_vector_float_get(TR.fvFL_CurStrsH,i)*gsl_vector_float_get(TR.fvFL_CurStrsH,i) + gsl_vector_float_get(TR.fvFL_CurStrsV,i)*gsl_vector_float_get(TR.fvFL_CurStrsV,i) );
+          //  fTemp1 = fTemp0*cosf(TR.fvFL_SlipRake_temp[i]);
+          //  fTemp2 = fTemp0*sinf(TR.fvFL_SlipRake_temp[i]);
+          //  gsl_vector_float_set(TR.fvFL_StrsRateStk,i, fTemp1);
+          //  gsl_vector_float_set(TR.fvFL_StrsRateDip,i, fTemp2);
+
+		 	fTemp1 = gsl_vector_float_get(TR.fvFL_CurStrsH,i);
+            fTemp2 = gsl_vector_float_get(TR.fvFL_CurStrsV,i);
             gsl_vector_float_set(TR.fvFL_StrsRateStk,i, fTemp1);
             gsl_vector_float_set(TR.fvFL_StrsRateDip,i, fTemp2);
         }
@@ -632,6 +631,13 @@ int main(int argc, char **argv)
     {	fwrite(fvFG_Temp0->data, sizeof(float), MD.iFPNum, fpPre); //the patch strength
 		fwrite(fvFG_Temp1->data, sizeof(float), MD.iFPNum, fpPre); //the patch stress drop when having full drop
 		fwrite(fvFG_Temp2->data, sizeof(float), MD.iFPNum, fpPre); //the Dc value
+	}
+	//-----------------------------------------------------------
+	if (MD.iRANK == 0)           
+    {	fwrite(&MD.iBPNum,          sizeof(int),        1, fpPre);  
+		fwrite(fvBG_Temp3->data, sizeof(float), MD.iBPNum, fpPre); //the slip/stressing rate in strike direction
+		fwrite(fvBG_Temp4->data, sizeof(float), MD.iBPNum, fpPre); //the slip/stressing rate in dip direction
+		fwrite(fvBG_Temp5->data, sizeof(float), MD.iBPNum, fpPre); //the slip/stressing rate in opening direction
 		fclose(fpPre);
 	}
 	//------------------------------------------------------------------------------------------	
@@ -910,8 +916,6 @@ int main(int argc, char **argv)
                     {	fTemp2             = sqrtf(gsl_vector_float_get(fvFG_Temp0, iGlobPos) *gsl_vector_float_get(fvFG_Temp0, iGlobPos)  +  gsl_vector_float_get(fvFG_Temp1, iGlobPos) *gsl_vector_float_get(fvFG_Temp1, iGlobPos));
 						//--------------------------------------
 						TR.fvFL_CurFric[i] = GetUpdatedFriction(TR.fvFL_B4_Fric[i], TR.fvFL_TempRefFric[i], TR.fvFL_CurFric[i], TR.fvFL_DynFric[i], TR.ivFL_FricLaw[i], TR.ivFL_StabT[i], TR.fvFL_CurDcVal[i], TR.fvFL_AccumSlp[i], fTemp2, MD.fHealFact);
-
-					//	TR.fvFL_CurFric[i] = TR.fvFL_DynFric[i];
 						//--------------------------------------
 					}
 					//-----------------------------------------------------------------------
@@ -1242,7 +1246,7 @@ int main(int argc, char **argv)
         		for (i = (MD.iSIZE-1); i > 0; i--)           {    EQ.ivR_WrtStrtPos[i]  = EQ.ivR_WrtStrtPos[i-1];             }    
         		EQ.ivR_WrtStrtPos[0]  = 0;
 				//-----------------------------------------------------------------------
-				if ((MD.iRANK == 0)&&(iPlot2Screen == 1) && (fTemp1 > 4.5))
+				if ((MD.iRANK == 0)&&(iPlot2Screen == 1) && (fTemp1 > 4.0))
 				{   iTemp0 = (int)fTemp1 -4; //just for nicer plotting...
 					fprintf(stdout,"%6d  Earthquake time %5.2f    act patches: %5d   MRF length: %4d   MaxSlip: %4.2f     MaxStressDrop: %4.2f    ",MD.iEQcntr, MD.fTimeYears,  EQ.iCmbFPNum, EQ.iMRFLgth, EQ.fMaxSlip, EQ.fMaxDTau);
 					for (i = 0; i < iTemp0; i++) 	{		fprintf(stdout,"    ");			}
@@ -1315,7 +1319,15 @@ int main(int argc, char **argv)
 				else
 				{  	TR.fvFL_CurFric[i] = TR.fvFL_StaFric[i]; //this happens for all unstable and cond. stable patches anyways; but stable ones could evolve posteismically => if not used, set value to static one...
 					gsl_vector_float_set(TR.fvFL_CurStrsN, i, TR.fvFL_RefNrmStrs[i]);	
-				}
+					//lower the shear stress down to this strength level for stable patches...
+					fTemp0 = sqrtf(gsl_vector_float_get(TR.fvFL_CurStrsH,i)*gsl_vector_float_get(TR.fvFL_CurStrsH,i) + gsl_vector_float_get(TR.fvFL_CurStrsV,i)*gsl_vector_float_get(TR.fvFL_CurStrsV,i) );
+					fTemp1 = TR.fvFL_CurFric[i]*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN,i);
+					if (fTemp0 > fTemp1)
+					{	fTemp2 = gsl_vector_float_get(TR.fvFL_CurStrsH,i) *fTemp1/fTemp0;
+						fTemp3 = gsl_vector_float_get(TR.fvFL_CurStrsV,i) *fTemp1/fTemp0;
+						gsl_vector_float_set(TR.fvFL_CurStrsH,i,fTemp2);
+						gsl_vector_float_set(TR.fvFL_CurStrsV,i,fTemp3);
+				}	}
 			    //-----------------------------------------				
 		    }
 		    for (i = 0; i < MD.ivB_OFFSET[MD.iRANK]; i++) 

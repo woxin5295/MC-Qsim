@@ -96,38 +96,25 @@ struct Kstruct
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 extern void   StrainHS_Nikkhoo(float Stress[6], float Strain[6], float X, float Y, float Z, float P1[3], float P2[3], float P3[3], float SS, float Ds, float Ts, const float mu, const float lambda);
 
-void        GetPtOrderAndPlane(float fP1in[3], float fP2in[3], float fP3in[3], float fP2out[3], float fP3out[3],float fNrm[3], float fd[1], float fArea[1]);
-void       GetLocKOS_inKmatrix(float fvNrm[3], float fvStk[3], float fvDip[3], const float fP1[3], const float fP2[3], const float fP3[3]);
 float            GetDist_2Pnts(float fT[3], float fL[3]);
+void                GetPtOrder(float fP1in[3], float fP2in[3], float fP3in[3], float fP2out[3], float fP3out[3]);        
+float         GetMinDist_8Pnts(float fP1[3], float fP1a[3],float P1b[3], float P1c[3], float fP2[3], float fP2a[3],float P2b[3], float P2c[3]);
+void       GetLocKOS_inKmatrix(float fvNrm[3], float fvStk[3], float fvDip[3], const float fP1[3], const float fP2[3], const float fP3[3]);
 void    RotateTensor_inKmatrix(float fsig_new[6], const float fsig[6], const float fvNrm[3], const float fvStk[3], const float fvDip[3], int iRotDir);
-int               GetSamePtNum(int   iSrcTrigs[3], int iRcvTrigs[3]);
-int               PtLiesInTrig(float fP1[3], float fP2[3], float fP3[3], float fNrm[3], float fd[1], float fArea[1], float fT[3]); 
-float                  GetArea(float fP1[3], float fP2[3], float fP3[3]);
-float     GetLotPunkt_PktEbene(float fNrm[3], float fd[1], float fT[3], float fL[3]);
-float           GetMinFraction(float fP1[3], float fP2[3], float fP3[3], float fT[3]);
-void     GetLotPunkt_PktGerade(float fP1[3], float fP2[3], float fT[3], float fL[3]);
 void              GetNewPoints(float CurFrac, float fP1in[3], float fP2in[3], float fP3in[3], float fP1out[3], float fP2out[3], float fP3out[3]);
+float                  GetArea(float fP1[3], float fP2[3], float fP3[3]);
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, struct  Kstruct *K)
-{    
-    int     i,                  j,              k,                  iGlobPos,           iTrigNum = 10;         
+{  
+    int     i,                  j,              k,                  iSrcFltID,          iRcvFltID,      iGlobPos,           iCntFlags_F = 0,        iTrigNum = 1;         
     float   fTemp0,             fTemp1,         fTemp2,             fTemp3,             fTemp4,         fTemp5;
-    float   fTemp6,             fTemp7,         fTemp8,             fTestDist,          fTestFrac1,     fTestFrac2;
-    float   fPartlMom,          fPartlSlip,     fCurFrac,           fTstArea,           fSrcLgth,       fRcvLgth;
-    int     iPntCntr,           iFlagPair,      iSrcFltID,          iRcvFltID,          iSrcTrigs[3],   iRcvTrigs[3];
-    float   fP1s[3],            fP2s[3],        fP3s[3];
-    float   fP1r[3],            fP2r[3],        fP3r[3];
-    float   fP1n[3],            fP2n[3],        fP3n[3];
-    float   fP2sOut[3],         fP3sOut[3],     fP2rOut[3],         fP3rOut[3];
-    float   fvNrm[3],           fvStk[3],       fvDip[3];
-    float   fSrcPt[3],          fRcvPt[3],      fTestPt[3];
-    float   fStress[6],         fStressOut[6];
-    float   fnSrc[3],           fnRcv[3],       fdSrc[1],           fdRcv[1],           fAreaSrc[1],    fAreaRcv[1];
-
-    int     iOverRuled = 0,     iCntFlags_F = 0;
-    float   fDistFrac   = 1.0; //if distance between observation point and source triangle (it's legs) is less than this fraction of the average length of this triangle's legs... => then...
-    float   fMaxLgth    = (MD->fFltLegs > MD->fBndLegs) ? MD->fFltLegs : MD->fBndLegs;
+    float   fTemp6,             fTemp7,         fTemp8,             fMinDist,           fSrcLgth,       fRcvLgth,           fUsdLgth;
+    float   fPartlMom,          fPartlSlip,     fCurFrac,           fTstArea;
+    int     iSrcTrigs[3],       iRcvTrigs[3];
+    float   fP1s[3],            fP2s[3],        fP3s[3],            fP1r[3],            fP2r[3],        fP3r[3],            fP1n[3],                fP2n[3],        fP3n[3];
+    float   fP2sOut[3],         fP3sOut[3],     fP2rOut[3],         fP3rOut[3],         fvNrm[3],       fvStk[3],           fvDip[3];
+    float   fSrcPt[3],          fRcvPt[3],      fStress[6],         fStressOut[6];
     //----------------------------------------------------------------------------------          
     for (i = 0; i < MD->iFPNum;  i++)   //going through the sources
     {   iSrcTrigs[0] = TR->ivFG_V1_temp[i];                    iSrcTrigs[1] = TR->ivFG_V2_temp[i];                 iSrcTrigs[2] = TR->ivFG_V3_temp[i];
@@ -139,9 +126,10 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
         fSrcLgth     = GetDist_2Pnts(fP1s, fP2s);              fSrcLgth+= GetDist_2Pnts(fP2s, fP3s);               fSrcLgth+= GetDist_2Pnts(fP3s, fP1s);          
         fSrcLgth    /= 3.0;
         //-----------------------------------------------   
-        GetPtOrderAndPlane(fP1s, fP2s, fP3s, fP2sOut, fP3sOut, fnSrc, fdSrc, fAreaSrc); //to make sure that fault normal will point upward
-        //----------------------------------------------- 
-        fPartlMom = fAreaSrc[0] *MD->fUnitSlip /(float)(iTrigNum);
+        GetPtOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut); //to make sure that fault normal will point upward
+        //-----------------------------------------------
+        fTstArea    = GetArea(fP1s,fP2s,fP3s);
+        fPartlMom   = (fTstArea *MD->fUnitSlip) /(float)(iTrigNum);
         //-----------------------------------------------
         for (j = 0; j < MD->ivF_OFFSET[MD->iRANK]; j++)// going through the receivers
         {   iGlobPos     = j + MD->ivF_START[MD->iRANK];     
@@ -154,17 +142,18 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
             fRcvLgth     = GetDist_2Pnts(fP1r, fP2r);               fRcvLgth+= GetDist_2Pnts(fP2r, fP3r);               fRcvLgth+= GetDist_2Pnts(fP3r, fP1r);          
             fRcvLgth    /= 3.0;
             //-----------------------------------------------   
-            GetPtOrderAndPlane(fP1r, fP2r, fP3r, fP2rOut, fP3rOut, fnRcv, fdRcv, fAreaRcv); //to make sure that fault normal will point upward
-            GetLocKOS_inKmatrix(fvNrm, fvStk, fvDip, fP1r, fP2rOut, fP3rOut);   //to rotate into the coordinate system of the receiver!
-            //-----------------------------------------------       
-            fTemp0   = 0.0;           fTemp1 = 0.0;           fTemp2 = 0.0; 
-            fTemp3   = 0.0;           fTemp4 = 0.0;           fTemp5 = 0.0;
-            fTemp6   = 0.0;           fTemp7 = 0.0;           fTemp8 = 0.0;
+            GetPtOrder(fP1r, fP2r, fP3r, fP2rOut, fP3rOut); //to make sure that fault normal will point upward
+            GetLocKOS_inKmatrix(fvNrm, fvStk, fvDip, fP1r, fP2rOut, fP3rOut);   //to rotate into the coordinate system of the receiver!GetLocKOS_inKmatrix(fvNrm, fvStk, fvDip, fP1r, fP2rOut, fP3rOut);   //to rotate into the coordinate system of the receiver!
             //-------------------------------  
-            fTestDist= GetDist_2Pnts(fSrcPt, fRcvPt);            
+            fMinDist    = GetMinDist_8Pnts(fSrcPt, fP1s, fP2sOut, fP3sOut, fRcvPt,  fP1r, fP2rOut, fP3rOut);            
+            fUsdLgth    = (fSrcLgth > fRcvLgth) ? fSrcLgth : fRcvLgth;
 
-            if ((iGlobPos == i) || (fTestDist > 2.0*fMaxLgth))     //is "self" or if distance is far enough away to not need the extra distance check 
+            fTemp0 = 0.0;       fTemp1 = 0.0;       fTemp2 = 0.0;           fTemp3 = 0.0;           fTemp4 = 0.0;           
+            fTemp5 = 0.0;       fTemp6 = 0.0;       fTemp7 = 0.0;           fTemp8 = 0.0; 
+
+            if ( (iGlobPos == i) || (fMinDist > 1.0*fUsdLgth) )
             {   if (iGlobPos == i)      {      TR->ivFL_SelfLoc[j] = iGlobPos;          }               
+                
                 //------------------------------------------------------------------------------------------   
                 StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, MD->fUnitSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
                 //-----------------------------------------------  
@@ -183,38 +172,11 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
                 RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
                 //-----------------------------------------------  
                 fTemp6 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp7 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp8 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
-            }          
+            } 
             else
-            {   //------------------------------------------------------------------------------------------ 
-                iFlagPair = 0;
-                iPntCntr  = GetSamePtNum(iSrcTrigs, iRcvTrigs);
-                if (iPntCntr == 0)              
-                {   //----------------------------------------------
-                    fTestDist = GetLotPunkt_PktEbene(fnRcv, fdRcv, fSrcPt, fTestPt); //TestPt is here the "lotpunkt"  i.e., the projection of SrcPt onto the triangle plane
-                    iPntCntr  = PtLiesInTrig(fP1r, fP2rOut, fP3rOut, fnRcv, fdRcv, fAreaRcv, fTestPt); 
-                    if ((iPntCntr > 0)     && (fTestDist <= 1.0*fDistFrac*fRcvLgth))     {    iFlagPair = 1;      }
-                    //----------------------------------------------
-                    if (iFlagPair == 0)
-                    {   fTestDist = GetLotPunkt_PktEbene(fnSrc, fdSrc, fRcvPt, fTestPt);
-                        iPntCntr  = PtLiesInTrig(fP1s, fP2sOut, fP3sOut, fnSrc, fdSrc, fAreaSrc, fTestPt); //now the "TestPt is projection point of RcvPt onto triangle plane of source
-                        if ((iPntCntr > 0) && (fTestDist <= 1.0*fDistFrac*fSrcLgth))     {    iFlagPair = 1;      }
-                    }
-                    //----------------------------------------------
-                    if (iFlagPair == 0)
-                    {   fTestFrac1 = GetMinFraction(fP1s, fP2sOut, fP3sOut, fRcvPt);
-                        fTestFrac2 = GetMinFraction(fP1r, fP2rOut, fP3rOut, fSrcPt);
-                        if ( (fTestFrac1 < fDistFrac) || (fTestFrac2 < fDistFrac) )     {    iFlagPair = 1;      }
-                    }
-                    //----------------------------------------------
-                }
-                if (iFlagPair == 1)
-                {   if (iSrcFltID == iRcvFltID)         {       iOverRuled++;           TR->ivFG_Flagged_temp[i] = 2;           }
-                    else                                {       iCntFlags_F++;          TR->ivFG_Flagged_temp[i] = 1;           }
-                }
-                //------------------------------------------------------------------------------------------                   
-                if ((iFlagPair == 0) || (iSrcFltID == iRcvFltID))
-                {   //-----------------------------------------------
-                    for (k = 0; k < iTrigNum; k++)
+            {   
+                if (iSrcFltID == iRcvFltID) //they are too close but part of the same fault => use tapered slip
+                {   for (k = 0; k < iTrigNum; k++)
                     {   
                         fCurFrac   = (float)(k+1)/(float)iTrigNum;
                         GetNewPoints(fCurFrac, fP1s, fP2sOut, fP3sOut, fP1n, fP2n, fP3n);
@@ -242,7 +204,12 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
                     fTemp0 = fTemp0/MD->fUnitSlip *1.0e-6;          fTemp1 = fTemp1/MD->fUnitSlip *1.0e-6;          fTemp2 = fTemp2/MD->fUnitSlip *1.0e-6;
                     fTemp3 = fTemp3/MD->fUnitSlip *1.0e-6;          fTemp4 = fTemp4/MD->fUnitSlip *1.0e-6;          fTemp5 = fTemp5/MD->fUnitSlip *1.0e-6;
                     fTemp6 = fTemp6/MD->fUnitSlip *1.0e-6;          fTemp7 = fTemp7/MD->fUnitSlip *1.0e-6;          fTemp8 = fTemp8/MD->fUnitSlip *1.0e-6;                              
-            }   }   
+                }
+                else // they are "too close" and not from the same fault =>flagged
+                {
+                    TR->ivFG_Flagged_temp[i] = 1;           iCntFlags_F++;
+                }
+            }         
             //------------------------------------------------------------------------------------------        
             gsl_matrix_float_set(K->FF_SO, i, j, fTemp0);   gsl_matrix_float_set(K->FF_SS, i, j, fTemp1);   gsl_matrix_float_set(K->FF_SD, i, j, fTemp2);  
             gsl_matrix_float_set(K->FF_DO, i, j, fTemp3);   gsl_matrix_float_set(K->FF_DS, i, j, fTemp4);   gsl_matrix_float_set(K->FF_DD, i, j, fTemp5);  
@@ -260,86 +227,27 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
             fRcvLgth     = GetDist_2Pnts(fP1r, fP2r);               fRcvLgth+= GetDist_2Pnts(fP2r, fP3r);               fRcvLgth+= GetDist_2Pnts(fP3r, fP1r);          
             fRcvLgth    /= 3.0;
             //-----------------------------------------------   
-            GetPtOrderAndPlane(fP1r, fP2r, fP3r, fP2rOut, fP3rOut, fnRcv, fdRcv, fAreaRcv); //to make sure that fault normal will point upward
+            GetPtOrder(fP1r, fP2r, fP3r, fP2rOut, fP3rOut); //to make sure that fault normal will point upward
             GetLocKOS_inKmatrix(fvNrm, fvStk, fvDip, fP1r, fP2rOut, fP3rOut);   //to rotate into the coordinate system of the receiver!
-            //-----------------------------------------------             
-            fTemp0   = 0.0;           fTemp1 = 0.0;           fTemp2 = 0.0; 
-            fTemp3   = 0.0;           fTemp4 = 0.0;           fTemp5 = 0.0;
-            fTemp6   = 0.0;           fTemp7 = 0.0;           fTemp8 = 0.0;
-            //-------------------------------  
-            fTestDist= GetDist_2Pnts(fSrcPt, fRcvPt);            
-
-            if (fTestDist > 2.0*fMaxLgth)    //is "self" or if distance is far enough away to not need the extra distance check 
-            {               
-                //------------------------------------------------------------------------------------------   
-                StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, MD->fUnitSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                //-----------------------------------------------  
-                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                //-----------------------------------------------  
-                fTemp0 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp1 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp2 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
-                //------------------------------------------------------------------------------------------   
-                StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, 0.0, MD->fUnitSlip, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                //-----------------------------------------------  
-                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                //-----------------------------------------------  
-                fTemp3 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp4 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp5 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
-                //------------------------------------------------------------------------------------------   
-                StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, 0.0, 0.0, MD->fUnitSlip, MD->fShearMod, MD->fLambda);         // slip in stk         
-                //-----------------------------------------------  
-                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                //-----------------------------------------------  
-                fTemp6 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp7 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp8 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
-            }          
-            else
-            {   //------------------------------------------------------------------------------------------ 
-                iFlagPair  = 0;
-                fTestDist = GetLotPunkt_PktEbene(fnRcv, fdRcv, fSrcPt, fTestPt); //TestPt is here the "lotpunkt"  i.e., the projection of SrcPt onto the triangle plane
-                iPntCntr  = PtLiesInTrig(fP1r, fP2rOut, fP3rOut, fnRcv, fdRcv, fAreaRcv, fTestPt); 
-                if ((iPntCntr > 0)     && (fTestDist <= 1.0*fDistFrac*fRcvLgth))     {    iFlagPair = 1;      }
-                //----------------------------------------------
-                if (iFlagPair == 0)
-                {   fTestDist = GetLotPunkt_PktEbene(fnSrc, fdSrc, fRcvPt, fTestPt);
-                    iPntCntr  = PtLiesInTrig(fP1s, fP2sOut, fP3sOut, fnSrc, fdSrc, fAreaSrc, fTestPt); //now the "TestPt is projection point of RcvPt onto triangle plane of source
-                    if ((iPntCntr > 0) && (fTestDist <= 1.0*fDistFrac*fSrcLgth))     {    iFlagPair = 1;      }
-                }
-                //----------------------------------------------
-                if (iFlagPair == 0)
-                {   fTestFrac1 = GetMinFraction(fP1s, fP2sOut, fP3sOut, fRcvPt);
-                    fTestFrac2 = GetMinFraction(fP1r, fP2rOut, fP3rOut, fSrcPt);
-                    if ( (fTestFrac1 < fDistFrac) || (fTestFrac2 < fDistFrac) )     {    iFlagPair = 1;      }
-                }
-                //------------------------------------------------------------------------------------------                   
-                if (iFlagPair == 0) 
-                {   //-----------------------------------------------
-                    for (k = 0; k < iTrigNum; k++)
-                    {   
-                        fCurFrac   = (float)(k+1)/(float)iTrigNum;
-                        GetNewPoints(fCurFrac, fP1s, fP2sOut, fP3sOut, fP1n, fP2n, fP3n);
-                        fTstArea   = GetArea(fP1n,fP2n,fP3n);
-                        fPartlSlip = fPartlMom/fTstArea;
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, fPartlSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp0 += fStressOut[0];        fTemp1 += fStressOut[1];           fTemp2 += fStressOut[2]; 
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, 0.0, fPartlSlip, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp3 += fStressOut[0];        fTemp4 += fStressOut[1];           fTemp5 += fStressOut[2]; 
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, 0.0, 0.0, fPartlSlip, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp6 += fStressOut[0];        fTemp7 += fStressOut[1];           fTemp8 += fStressOut[2];                         
-                    }
-                    fTemp0 = fTemp0/MD->fUnitSlip *1.0e-6;          fTemp1 = fTemp1/MD->fUnitSlip *1.0e-6;          fTemp2 = fTemp2/MD->fUnitSlip *1.0e-6;
-                    fTemp3 = fTemp3/MD->fUnitSlip *1.0e-6;          fTemp4 = fTemp4/MD->fUnitSlip *1.0e-6;          fTemp5 = fTemp5/MD->fUnitSlip *1.0e-6;
-                    fTemp6 = fTemp6/MD->fUnitSlip *1.0e-6;          fTemp7 = fTemp7/MD->fUnitSlip *1.0e-6;          fTemp8 = fTemp8/MD->fUnitSlip *1.0e-6;                                    
-            }   } 
+            //------------------------------------------------------------------------------------------   
+            StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, MD->fUnitSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
+            //-----------------------------------------------  
+            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+            //-----------------------------------------------  
+            fTemp0 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp1 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp2 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
+            //------------------------------------------------------------------------------------------   
+            StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, 0.0, MD->fUnitSlip, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
+            //-----------------------------------------------  
+            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+            //-----------------------------------------------  
+            fTemp3 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp4 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp5 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
+            //------------------------------------------------------------------------------------------   
+            StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, 0.0, 0.0, MD->fUnitSlip, MD->fShearMod, MD->fLambda);         // slip in stk         
+            //-----------------------------------------------  
+            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+            //-----------------------------------------------  
+            fTemp6 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp7 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp8 = fStressOut[2]/MD->fUnitSlip *1.0e-6;         
+            
             //------------------------------------------------------------------------------------------        
             gsl_matrix_float_set(K->FB_SO, i, j, fTemp0);   gsl_matrix_float_set(K->FB_SS, i, j, fTemp1);   gsl_matrix_float_set(K->FB_SD, i, j, fTemp2);  
             gsl_matrix_float_set(K->FB_DO, i, j, fTemp3);   gsl_matrix_float_set(K->FB_DS, i, j, fTemp4);   gsl_matrix_float_set(K->FB_DD, i, j, fTemp5);  
@@ -359,10 +267,8 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
         fSrcLgth     = GetDist_2Pnts(fP1s, fP2s);              fSrcLgth+= GetDist_2Pnts(fP2s, fP3s);               fSrcLgth+= GetDist_2Pnts(fP3s, fP1s);          
         fSrcLgth    /= 3.0;
         //-----------------------------------------------   
-        GetPtOrderAndPlane(fP1s, fP2s, fP3s, fP2sOut, fP3sOut, fnSrc, fdSrc, fAreaSrc); //to make sure that fault normal will point upward
+        GetPtOrder(fP1s, fP2s, fP3s, fP2sOut, fP3sOut); //to make sure that fault normal will point upward
         //----------------------------------------------- 
-        fPartlMom = fAreaSrc[0] *MD->fUnitSlip /(float)(iTrigNum);
-        //-----------------------------------------------
         for (j = 0; j < MD->ivB_OFFSET[MD->iRANK]; j++)// going through the receivers
         {   iGlobPos     = j + MD->ivB_START[MD->iRANK];     
             iRcvTrigs[0] = TR->ivBG_V1_temp[iGlobPos];          iRcvTrigs[1] = TR->ivBG_V2_temp[iGlobPos];          iRcvTrigs[2] = TR->ivBG_V3_temp[iGlobPos];               
@@ -374,17 +280,15 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
             fRcvLgth     = GetDist_2Pnts(fP1r, fP2r);               fRcvLgth+= GetDist_2Pnts(fP2r, fP3r);               fRcvLgth+= GetDist_2Pnts(fP3r, fP1r);          
             fRcvLgth    /= 3.0;
             //-----------------------------------------------   
-            GetPtOrderAndPlane(fP1r, fP2r, fP3r, fP2rOut, fP3rOut, fnRcv, fdRcv, fAreaRcv); //to make sure that fault normal will point upward
-            GetLocKOS_inKmatrix(fvNrm, fvStk, fvDip, fP1r, fP2rOut, fP3rOut);   //to rotate into the coordinate system of the receiver!
+            GetPtOrder(fP1r, fP2r, fP3r, fP2rOut, fP3rOut); //to make sure that fault normal will point upward
             //-----------------------------------------------             
-            fTemp0   = 0.0;           fTemp1 = 0.0;           fTemp2 = 0.0; 
-            fTemp3   = 0.0;           fTemp4 = 0.0;           fTemp5 = 0.0;
-            fTemp6   = 0.0;           fTemp7 = 0.0;           fTemp8 = 0.0;
-            //-------------------------------  
-            fTestDist= GetDist_2Pnts(fSrcPt, fRcvPt);            
+            fMinDist = GetMinDist_8Pnts(fSrcPt, fP1s, fP2sOut, fP3sOut, fRcvPt,  fP1r, fP2rOut, fP3rOut);            
+            fUsdLgth = (fSrcLgth > fRcvLgth) ? fSrcLgth : fRcvLgth;     
 
-            if ((iGlobPos == i) || (fTestDist > 2.0*fMaxLgth))     //is "self" or if distance is far enough away to not need the extra distance check 
+            if ( (iGlobPos == i) || (fMinDist > 1.0*fUsdLgth) )    //is "self" or if distance is far enough away to not need the extra distance check 
             {   if (iGlobPos == i)      {      TR->ivBL_SelfLoc[j] = iGlobPos;          }               
+
+                GetLocKOS_inKmatrix(fvNrm, fvStk, fvDip, fP1r, fP2rOut, fP3rOut);   //to rotate into the coordinate system of the receiver!
                 //------------------------------------------------------------------------------------------   
                 StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, MD->fUnitSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
                 //-----------------------------------------------  
@@ -404,60 +308,6 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
                 //-----------------------------------------------  
                 fTemp6 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp7 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp8 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
             }          
-            else
-            {   //------------------------------------------------------------------------------------------ 
-                iFlagPair = 0;
-                iPntCntr  = GetSamePtNum(iSrcTrigs, iRcvTrigs);
-                if (iPntCntr == 0)              
-                {   fTestDist = GetLotPunkt_PktEbene(fnRcv, fdRcv, fSrcPt, fTestPt); //TestPt is here the "lotpunkt"  i.e., the projection of SrcPt onto the triangle plane
-                    iPntCntr  = PtLiesInTrig(fP1r, fP2rOut, fP3rOut, fnRcv, fdRcv, fAreaRcv, fTestPt); 
-                    if ((iPntCntr > 0)     && (fTestDist <= 1.0*fDistFrac*fRcvLgth))        {    iFlagPair = 1;      }
-                    //----------------------------------------------
-                    if (iFlagPair == 0)
-                    {   fTestDist = GetLotPunkt_PktEbene(fnSrc, fdSrc, fRcvPt, fTestPt);
-                        iPntCntr  = PtLiesInTrig(fP1s, fP2sOut, fP3sOut, fnSrc, fdSrc, fAreaSrc, fTestPt); //now the "TestPt is projection point of RcvPt onto triangle plane of source
-                        if ((iPntCntr > 0) && (fTestDist <= 1.0*fDistFrac*fSrcLgth))        {    iFlagPair = 1;      }
-                    }
-                    //----------------------------------------------
-                    if (iFlagPair == 0)
-                    {   fTestFrac1 = GetMinFraction(fP1s, fP2sOut, fP3sOut, fRcvPt);
-                        fTestFrac2 = GetMinFraction(fP1r, fP2rOut, fP3rOut, fSrcPt);
-                        if ( (fTestFrac1 < fDistFrac) || (fTestFrac2 < fDistFrac) )         {    iFlagPair = 1;      }
-                    }
-                    //----------------------------------------------
-                }
-                //------------------------------------------------------------------------------------------                   
-                if (iFlagPair == 0) 
-                {   //-----------------------------------------------
-                    for (k = 0; k < iTrigNum; k++)
-                    {   
-                        fCurFrac   = (float)(k+1)/(float)iTrigNum;
-                        GetNewPoints(fCurFrac, fP1s, fP2sOut, fP3sOut, fP1n, fP2n, fP3n);
-                        fTstArea   = GetArea(fP1n,fP2n,fP3n);
-                        fPartlSlip = fPartlMom/fTstArea;
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, fPartlSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp0 += fStressOut[0];        fTemp1 += fStressOut[1];           fTemp2 += fStressOut[2]; 
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, 0.0, fPartlSlip, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp3 += fStressOut[0];        fTemp4 += fStressOut[1];           fTemp5 += fStressOut[2]; 
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, 0.0, 0.0, fPartlSlip, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp6 += fStressOut[0];        fTemp7 += fStressOut[1];           fTemp8 += fStressOut[2];                         
-                    }
-                    fTemp0 = fTemp0/MD->fUnitSlip *1.0e-6;          fTemp1 = fTemp1/MD->fUnitSlip *1.0e-6;          fTemp2 = fTemp2/MD->fUnitSlip *1.0e-6;
-                    fTemp3 = fTemp3/MD->fUnitSlip *1.0e-6;          fTemp4 = fTemp4/MD->fUnitSlip *1.0e-6;          fTemp5 = fTemp5/MD->fUnitSlip *1.0e-6;
-                    fTemp6 = fTemp6/MD->fUnitSlip *1.0e-6;          fTemp7 = fTemp7/MD->fUnitSlip *1.0e-6;          fTemp8 = fTemp8/MD->fUnitSlip *1.0e-6;                              
-            }   }   
             //------------------------------------------------------------------------------------------        
             gsl_matrix_float_set(K->BB_SO, i, j, fTemp0);   gsl_matrix_float_set(K->BB_SS, i, j, fTemp1);   gsl_matrix_float_set(K->BB_SD, i, j, fTemp2);  
             gsl_matrix_float_set(K->BB_DO, i, j, fTemp3);   gsl_matrix_float_set(K->BB_DS, i, j, fTemp4);   gsl_matrix_float_set(K->BB_DD, i, j, fTemp5);  
@@ -475,91 +325,26 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
             fRcvLgth     = GetDist_2Pnts(fP1r, fP2r);               fRcvLgth+= GetDist_2Pnts(fP2r, fP3r);               fRcvLgth+= GetDist_2Pnts(fP3r, fP1r);          
             fRcvLgth    /= 3.0;
             //-----------------------------------------------   
-            GetPtOrderAndPlane(fP1r, fP2r, fP3r, fP2rOut, fP3rOut, fnRcv, fdRcv, fAreaRcv); //to make sure that fault normal will point upward
+            GetPtOrder(fP1r, fP2r, fP3r, fP2rOut, fP3rOut); //to make sure that fault normal will point upward
             GetLocKOS_inKmatrix(fvNrm, fvStk, fvDip, fP1r, fP2rOut, fP3rOut);   //to rotate into the coordinate system of the receiver!
-
-            //-----------------------------------------------             
-            fTemp0   = 0.0;           fTemp1 = 0.0;           fTemp2 = 0.0; 
-            fTemp3   = 0.0;           fTemp4 = 0.0;           fTemp5 = 0.0;
-            fTemp6   = 0.0;           fTemp7 = 0.0;           fTemp8 = 0.0;
-            //-------------------------------  
-            fTestDist= GetDist_2Pnts(fSrcPt, fRcvPt);            
-
-            if (fTestDist > 2.0*fMaxLgth)    //is "self" or if distance is far enough away to not need the extra distance check 
-            {   //------------------------------------------------------------------------------------------   
-                StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, MD->fUnitSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                //-----------------------------------------------  
-                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                //-----------------------------------------------  
-                fTemp0 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp1 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp2 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
-                //------------------------------------------------------------------------------------------   
-                StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, 0.0, MD->fUnitSlip, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                //-----------------------------------------------  
-                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                //-----------------------------------------------  
-                fTemp3 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp4 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp5 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
-                //------------------------------------------------------------------------------------------   
-                StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, 0.0, 0.0, MD->fUnitSlip, MD->fShearMod, MD->fLambda);         // slip in stk         
-                //-----------------------------------------------  
-                RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                //-----------------------------------------------  
-                fTemp6 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp7 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp8 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
-            }          
-            else
-            {   //------------------------------------------------------------------------------------------ 
-                iFlagPair  = 0;
-                iPntCntr = GetSamePtNum(iSrcTrigs, iRcvTrigs);
-                if (iPntCntr == 0)              
-                {   //----------------------------------------------
-                    if (iFlagPair == 0)
-                    {   fTestDist = GetLotPunkt_PktEbene(fnRcv, fdRcv, fSrcPt, fTestPt); //TestPt is here the "lotpunkt"  i.e., the projection of SrcPt onto the triangle plane
-                        iPntCntr  = PtLiesInTrig(fP1r, fP2rOut, fP3rOut, fnRcv, fdRcv, fAreaRcv, fTestPt); 
-                        if ((iPntCntr > 0) && (fTestDist <= 1.0*fDistFrac*fRcvLgth))             {    iFlagPair = 1;      }
-                        //----------------------
-                        fTestDist = GetLotPunkt_PktEbene(fnSrc, fdSrc, fRcvPt, fTestPt);
-                        iPntCntr  = PtLiesInTrig(fP1s, fP2sOut, fP3sOut, fnSrc, fdSrc, fAreaSrc, fTestPt); //now the "TestPt is projection point of RcvPt onto triangle plane of source
-                        if ((iPntCntr > 0) && (fTestDist <= 1.0*fDistFrac*fSrcLgth))             {    iFlagPair = 1;      }
-                    }
-                    //----------------------------------------------
-                    if (iFlagPair == 0)
-                    {   fTestFrac1 = GetMinFraction(fP1s, fP2sOut, fP3sOut, fRcvPt);
-                        fTestFrac2 = GetMinFraction(fP1r, fP2rOut, fP3rOut, fSrcPt);
-                        if ( (fTestFrac1 < fDistFrac) || (fTestFrac2 < fDistFrac) )     {    iFlagPair = 1;      }
-                    }
-                    //----------------------------------------------
-                }
-                //------------------------------------------------------------------------------------------                   
-                if (iFlagPair == 0) 
-                {   //-----------------------------------------------
-                    for (k = 0; k < iTrigNum; k++)
-                    {   
-                        fCurFrac   = (float)(k+1)/(float)iTrigNum;
-                        GetNewPoints(fCurFrac, fP1s, fP2sOut, fP3sOut, fP1n, fP2n, fP3n);
-                        fTstArea   = GetArea(fP1n,fP2n,fP3n);
-                        fPartlSlip = fPartlMom/fTstArea;
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, fPartlSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp0 += fStressOut[0];        fTemp1 += fStressOut[1];           fTemp2 += fStressOut[2]; 
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, 0.0, fPartlSlip, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp3 += fStressOut[0];        fTemp4 += fStressOut[1];           fTemp5 += fStressOut[2]; 
-                        //-----------------------------------------------  
-                        StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1n, fP2n, fP3n, 0.0, 0.0, fPartlSlip, MD->fShearMod, MD->fLambda);         // slip in stk         
-                        //-----------------------------------------------  
-                        RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
-                        //----------------------------------------------- 
-                        fTemp6 += fStressOut[0];        fTemp7 += fStressOut[1];           fTemp8 += fStressOut[2];                         
-                    }
-                    fTemp0 = fTemp0/MD->fUnitSlip *1.0e-6;          fTemp1 = fTemp1/MD->fUnitSlip *1.0e-6;          fTemp2 = fTemp2/MD->fUnitSlip *1.0e-6;
-                    fTemp3 = fTemp3/MD->fUnitSlip *1.0e-6;          fTemp4 = fTemp4/MD->fUnitSlip *1.0e-6;          fTemp5 = fTemp5/MD->fUnitSlip *1.0e-6;
-                    fTemp6 = fTemp6/MD->fUnitSlip *1.0e-6;          fTemp7 = fTemp7/MD->fUnitSlip *1.0e-6;          fTemp8 = fTemp8/MD->fUnitSlip *1.0e-6;                              
-            }   }   
+            //------------------------------------------------------------------------------------------   
+            StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, MD->fUnitSlip, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
+            //-----------------------------------------------  
+            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+            //-----------------------------------------------  
+            fTemp0 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp1 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp2 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
+            //------------------------------------------------------------------------------------------   
+            StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, 0.0, MD->fUnitSlip, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
+            //-----------------------------------------------  
+            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+            //-----------------------------------------------  
+            fTemp3 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp4 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp5 = fStressOut[2]/MD->fUnitSlip *1.0e-6; 
+            //------------------------------------------------------------------------------------------   
+            StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2sOut, fP3sOut, 0.0, 0.0, MD->fUnitSlip, MD->fShearMod, MD->fLambda);         // slip in stk         
+            //-----------------------------------------------  
+            RotateTensor_inKmatrix(fStressOut, fStress, fvNrm, fvStk, fvDip, 0);
+            //-----------------------------------------------  
+            fTemp6 = fStressOut[0]/MD->fUnitSlip *1.0e-6;           fTemp7 = fStressOut[1]/MD->fUnitSlip *1.0e-6;           fTemp8 = fStressOut[2]/MD->fUnitSlip *1.0e-6;  
             //------------------------------------------------------------------------------------------        
             gsl_matrix_float_set(K->BF_SO, i, j, fTemp0);   gsl_matrix_float_set(K->BF_SS, i, j, fTemp1);   gsl_matrix_float_set(K->BF_SD, i, j, fTemp2);  
             gsl_matrix_float_set(K->BF_DO, i, j, fTemp3);   gsl_matrix_float_set(K->BF_DS, i, j, fTemp4);   gsl_matrix_float_set(K->BF_DD, i, j, fTemp5);  
@@ -586,7 +371,7 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
             else // no weakening but strengthening  => stable/
             {    TR->ivFL_StabT[i] = 3; // patch is stable 
     }   }   }
-    fprintf(stdout,"iRANK: %d flagged interactions: %d (fault)   and overruled %d \n",MD->iRANK, iCntFlags_F, iOverRuled);
+    fprintf(stdout,"iRANK: %d flagged interactions: %d (fault)\n",MD->iRANK, iCntFlags_F);
     //------------------------------------------------------------------ 
     return;
 } 
@@ -594,9 +379,16 @@ void     Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstru
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-void  GetPtOrderAndPlane(float fP1in[3], float fP2in[3], float fP3in[3], float fP2out[3], float fP3out[3], float fNrm[3], float fd[1], float fArea[1])
+float GetDist_2Pnts(float fT[3], float fL[3])
+{   float TheDist;
+    TheDist   = sqrtf( (fT[0]-fL[0])*(fT[0]-fL[0]) + (fT[1]-fL[1])*(fT[1]-fL[1]) + (fT[2]-fL[2])*(fT[2]-fL[2]) ); 
+    return TheDist;
+}
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+void  GetPtOrder(float fP1in[3], float fP2in[3], float fP3in[3], float fP2out[3], float fP3out[3])
 {   float fTemp;
-    float fP1toP2[3],       fP1toP3[3];
+    float fP1toP2[3],       fP1toP3[3],          fNrm[3];
 
     fP1toP2[0] = fP2in[0] - fP1in[0];           fP1toP2[1] = fP2in[1] - fP1in[1];               fP1toP2[2] = fP2in[2] - fP1in[2];
     fP1toP3[0] = fP3in[0] - fP1in[0];           fP1toP3[1] = fP3in[1] - fP1in[1];               fP1toP3[2] = fP3in[2] - fP1in[2];
@@ -604,8 +396,6 @@ void  GetPtOrderAndPlane(float fP1in[3], float fP2in[3], float fP3in[3], float f
     fNrm[0]    = fP1toP2[1]*fP1toP3[2] - fP1toP2[2]*fP1toP3[1];
     fNrm[1]    = fP1toP2[2]*fP1toP3[0] - fP1toP2[0]*fP1toP3[2];
     fNrm[2]    = fP1toP2[0]*fP1toP3[1] - fP1toP2[1]*fP1toP3[0];
-    //----------------------
-    fArea[0]   = 0.5*sqrtf( fNrm[0]*fNrm[0] +fNrm[1]*fNrm[1] +fNrm[2]*fNrm[2]); //get area of the triangle
     //----------------------
     fTemp      = sqrtf(fNrm[0]*fNrm[0] +fNrm[1]*fNrm[1] +fNrm[2]*fNrm[2]); //get length of normal vector => to normalize the normal vector so that it has a length of 1...
     fNrm[0]   /= fTemp;                         fNrm[1]   /= fTemp;                             fNrm[2]   /= fTemp;
@@ -620,9 +410,34 @@ void  GetPtOrderAndPlane(float fP1in[3], float fP2in[3], float fP3in[3], float f
         fP3out[0]      = fP3in[0];            fP3out[1]      = fP3in[1];                fP3out[2]      = fP3in[2];
     }
     //----------------------
-    fd[0]      = fNrm[0]*fP1in[0] + fNrm[1]*fP1in[1] +fNrm[2]*fP1in[2]; //part of the plane equation
-    //----------------------
     return;
+}
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+float GetMinDist_8Pnts(float fP1[3], float fP1a[3], float fP1b[3], float fP1c[3], float fP2[3], float fP2a[3], float fP2b[3], float fP2c[3])
+{   float MinDist,      TstDist;
+
+    MinDist   = sqrtf( (fP1[0]- fP2[0])*(fP1[0]- fP2[0]) + (fP1[1] -fP2[1])*(fP1[1] -fP2[1]) + (fP1[2] -fP2[2])*(fP1[2] -fP2[2]) ); 
+    TstDist   = sqrtf( (fP1[0]-fP2a[0])*(fP1[0]-fP2a[0]) + (fP1[1]-fP2a[1])*(fP1[1]-fP2a[1]) + (fP1[2]-fP2a[2])*(fP1[2]-fP2a[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+    TstDist   = sqrtf( (fP1[0]-fP2b[0])*(fP1[0]-fP2b[0]) + (fP1[1]-fP2b[1])*(fP1[1]-fP2b[1]) + (fP1[2]-fP2b[2])*(fP1[2]-fP2b[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+    TstDist   = sqrtf( (fP1[0]-fP2c[0])*(fP1[0]-fP2c[0]) + (fP1[1]-fP2c[1])*(fP1[1]-fP2c[1]) + (fP1[2]-fP2c[2])*(fP1[2]-fP2c[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+
+    TstDist   = sqrtf( (fP1a[0]- fP2[0])*(fP1a[0]- fP2[0]) + (fP1a[1] -fP2[1])*(fP1a[1] -fP2[1]) + (fP1a[2] -fP2[2])*(fP1a[2] -fP2[2]) ); 
+    TstDist   = sqrtf( (fP1a[0]-fP2a[0])*(fP1a[0]-fP2a[0]) + (fP1a[1]-fP2a[1])*(fP1a[1]-fP2a[1]) + (fP1a[2]-fP2a[2])*(fP1a[2]-fP2a[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+    TstDist   = sqrtf( (fP1a[0]-fP2b[0])*(fP1a[0]-fP2b[0]) + (fP1a[1]-fP2b[1])*(fP1a[1]-fP2b[1]) + (fP1a[2]-fP2b[2])*(fP1a[2]-fP2b[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+    TstDist   = sqrtf( (fP1a[0]-fP2c[0])*(fP1a[0]-fP2c[0]) + (fP1a[1]-fP2c[1])*(fP1a[1]-fP2c[1]) + (fP1a[2]-fP2c[2])*(fP1a[2]-fP2c[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+
+    TstDist   = sqrtf( (fP1b[0]- fP2[0])*(fP1b[0]- fP2[0]) + (fP1b[1] -fP2[1])*(fP1b[1] -fP2[1]) + (fP1b[2] -fP2[2])*(fP1b[2] -fP2[2]) ); 
+    TstDist   = sqrtf( (fP1b[0]-fP2a[0])*(fP1b[0]-fP2a[0]) + (fP1b[1]-fP2a[1])*(fP1b[1]-fP2a[1]) + (fP1b[2]-fP2a[2])*(fP1b[2]-fP2a[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+    TstDist   = sqrtf( (fP1b[0]-fP2b[0])*(fP1b[0]-fP2b[0]) + (fP1b[1]-fP2b[1])*(fP1b[1]-fP2b[1]) + (fP1b[2]-fP2b[2])*(fP1b[2]-fP2b[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+    TstDist   = sqrtf( (fP1b[0]-fP2c[0])*(fP1b[0]-fP2c[0]) + (fP1b[1]-fP2c[1])*(fP1b[1]-fP2c[1]) + (fP1b[2]-fP2c[2])*(fP1b[2]-fP2c[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+
+    TstDist   = sqrtf( (fP1c[0]- fP2[0])*(fP1c[0]- fP2[0]) + (fP1c[1] -fP2[1])*(fP1c[1] -fP2[1]) + (fP1c[2] -fP2[2])*(fP1c[2] -fP2[2]) ); 
+    TstDist   = sqrtf( (fP1c[0]-fP2a[0])*(fP1c[0]-fP2a[0]) + (fP1c[1]-fP2a[1])*(fP1c[1]-fP2a[1]) + (fP1c[2]-fP2a[2])*(fP1c[2]-fP2a[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+    TstDist   = sqrtf( (fP1c[0]-fP2b[0])*(fP1c[0]-fP2b[0]) + (fP1c[1]-fP2b[1])*(fP1c[1]-fP2b[1]) + (fP1c[2]-fP2b[2])*(fP1c[2]-fP2b[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+    TstDist   = sqrtf( (fP1c[0]-fP2c[0])*(fP1c[0]-fP2c[0]) + (fP1c[1]-fP2c[1])*(fP1c[1]-fP2c[1]) + (fP1c[2]-fP2c[2])*(fP1c[2]-fP2c[2]) );     MinDist = (MinDist < TstDist) ? MinDist : TstDist;
+
+    return MinDist;
 }
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
@@ -664,13 +479,6 @@ void GetLocKOS_inKmatrix(float fvNrm[3], float fvStk[3], float fvDip[3], const f
 }
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-float GetDist_2Pnts(float fT[3], float fL[3])
-{   float TheDist;
-    TheDist   = sqrtf( (fT[0]-fL[0])*(fT[0]-fL[0]) + (fT[1]-fL[1])*(fT[1]-fL[1]) + (fT[2]-fL[2])*(fT[2]-fL[2]) ); 
-    return TheDist;
-}
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 void RotateTensor_inKmatrix(float fsig_new[6], const float fsig[6], const float fvNrm[3], const float fvStk[3], const float fvDip[3], int iRotDir)
 {   
     float fTxx1,          fTxy1,         fTxz1,          fTyy1,         fTyz1,            fTzz1;
@@ -707,129 +515,6 @@ void RotateTensor_inKmatrix(float fsig_new[6], const float fsig[6], const float 
 }
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-int GetSamePtNum(int iSrcTrigs[3], int iRcvTrigs[3])
-{   int iSamePtNum = 0;
-
-    iSamePtNum = (iSrcTrigs[0] == iRcvTrigs[0]) ? iSamePtNum+1 : iSamePtNum;
-    iSamePtNum = (iSrcTrigs[0] == iRcvTrigs[1]) ? iSamePtNum+1 : iSamePtNum;
-    iSamePtNum = (iSrcTrigs[0] == iRcvTrigs[2]) ? iSamePtNum+1 : iSamePtNum;
-    iSamePtNum = (iSrcTrigs[1] == iRcvTrigs[0]) ? iSamePtNum+1 : iSamePtNum;
-    iSamePtNum = (iSrcTrigs[1] == iRcvTrigs[1]) ? iSamePtNum+1 : iSamePtNum;
-    iSamePtNum = (iSrcTrigs[1] == iRcvTrigs[2]) ? iSamePtNum+1 : iSamePtNum;
-    iSamePtNum = (iSrcTrigs[2] == iRcvTrigs[0]) ? iSamePtNum+1 : iSamePtNum;
-    iSamePtNum = (iSrcTrigs[2] == iRcvTrigs[1]) ? iSamePtNum+1 : iSamePtNum;
-    iSamePtNum = (iSrcTrigs[2] == iRcvTrigs[2]) ? iSamePtNum+1 : iSamePtNum;
-    return iSamePtNum;
-}
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-int  PtLiesInTrig(float fP1[3], float fP2[3], float fP3[3], float fNrm[3], float fd[1], float fArea[1], float fT[3])
-{   int IsInPlane = 0;
-    float fArea1,       fArea2,         fArea3,           fTestVal;
-
-    fTestVal = fNrm[0]*fT[0] + fNrm[1]*fT[1] +fNrm[2]*fT[2];
-
-    if (fTestVal == fd[0]) //test point is in the same plane that the triangle forms
-    {   fArea1  = GetArea(fP1, fP2, fT);        fArea2  = GetArea(fP2, fP3, fT);                  fArea3  = GetArea(fP3, fP1, fT);
-        
-        if ((fArea1+fArea2+fArea3) <= fArea[0])
-        {   IsInPlane = 2;
-            if ((fArea1 == 0.0) || (fArea2 == 0.0) || (fArea3 == 0.0))      
-            {   IsInPlane = 1;
-    }   }   }
-
-    return IsInPlane;
-}
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-float GetArea(float fP1[3], float fP2[3], float fP3[3])
-{   float fP1toP2[3],       fP1toP3[3],      fNrm[3];
-    float fArea0;
- 
-    fP1toP2[0] = fP2[0] - fP1[0];              fP1toP2[1] = fP2[1] - fP1[1];               fP1toP2[2] = fP2[2] - fP1[2];
-    fP1toP3[0] = fP3[0] - fP1[0];              fP1toP3[1] = fP3[1] - fP1[1];               fP1toP3[2] = fP3[2] - fP1[2];
-    fNrm[0]    = fP1toP2[1]*fP1toP3[2] - fP1toP2[2]*fP1toP3[1];
-    fNrm[1]    = fP1toP2[2]*fP1toP3[0] - fP1toP2[0]*fP1toP3[2];
-    fNrm[2]    = fP1toP2[0]*fP1toP3[1] - fP1toP2[1]*fP1toP3[0];
-	fArea0     = 0.5*sqrtf( fNrm[0]*fNrm[0] +fNrm[1]*fNrm[1] +fNrm[2]*fNrm[2]);
-    return fArea0;
-}
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-float GetLotPunkt_PktEbene(float fNrm[3], float fd[1], float fT[3], float fL[3])
-{
-    float s,   dist;
-    s          = (fd[0] -fNrm[0]*fT[0] -fNrm[1]*fT[1] -fNrm[2]*fT[2]) / (fNrm[0]*fNrm[0] +fNrm[1]*fNrm[1] +fNrm[2]*fNrm[2]); 
-    fL[0]      = fT[0] +s*fNrm[0];
-    fL[1]      = fT[1] +s*fNrm[1];
-    fL[2]      = fT[2] +s*fNrm[2];
-    dist       = sqrtf((fT[0]-fL[0])*(fT[0]-fL[0]) + (fT[1]-fL[1])*(fT[1]-fL[1]) + (fT[2]-fL[2])*(fT[2]-fL[2]) );
-    return dist;
-}
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
- float GetMinFraction(float fP1s[3], float fP2s[3], float fP3s[3], float fT[3])
- {  //https://www.mathematik-oberstufe.de/vektoren/a/abstand-punkt-gerade-lot.html
-    float  fDist0 = 0.0,    fDist1,           fDist2,         fDist3,            fDist4;
-    float  fThisFrac = INFINITY; //just a starting value
-    float  fL[3];
-    //-------------------------------------------------------------
-    fDist0   += GetDist_2Pnts(fP1s, fP2s);          fDist0   += GetDist_2Pnts(fP2s, fP3s);
-    fDist0   += GetDist_2Pnts(fP3s, fP1s);          fDist0   /= 3.0;
-    //first, test the distance of receiver point to all the vertices (P1, P2, P3); 
-    fDist4    = GetDist_2Pnts(fP1s, fT);
-    fThisFrac = (fDist4/fDist0 < fThisFrac) ? fDist4/fDist0 : fThisFrac;    
-    fDist4    = GetDist_2Pnts(fP2s, fT);
-    fThisFrac = (fDist4/fDist0 < fThisFrac) ? fDist4/fDist0 : fThisFrac;  
-    fDist4    = GetDist_2Pnts(fP3s, fT);
-    fThisFrac = (fDist4/fDist0 < fThisFrac) ? fDist4/fDist0 : fThisFrac;
-    //-------------------------------------------------------------
-    //for P2-P1 vector i.e., triangle leg
-    fDist1    = GetDist_2Pnts(fP1s, fP2s);
-    GetLotPunkt_PktGerade(fP1s, fP2s, fT, fL);
-    fDist2    = GetDist_2Pnts(fL, fP1s);
-    fDist3    = GetDist_2Pnts(fL, fP2s);
-    fDist4    = GetDist_2Pnts(fL, fT);
-    if ((fDist2 <= fDist1) && (fDist3 <= fDist1)) /*if both Schnittpunkt-Point lengths are equal or smaller than Point to Point length, then the Schnittpunkt lies between them and I have to check the distance*/
-    {   fThisFrac = (fDist4/fDist0 < fThisFrac) ? fDist4/fDist0 : fThisFrac;  
-    }
-    //for P2-P3 vector i.e., triangle leg
-    fDist1    = GetDist_2Pnts(fP2s, fP3s);
-    GetLotPunkt_PktGerade(fP2s, fP3s, fT, fL);
-    fDist2    = GetDist_2Pnts(fL, fP2s);
-    fDist3    = GetDist_2Pnts(fL, fP3s);
-    fDist4    = GetDist_2Pnts(fL, fT);
-    if ((fDist2 <= fDist1) && (fDist3 <= fDist1)) /*if both Schnittpunkt-Point lengths are equal or smaller than Point to Point length, then the Schnittpunkt lies between them and I have to check the distance*/
-    {   fThisFrac = (fDist4/fDist0 < fThisFrac) ? fDist4/fDist0 : fThisFrac; 
-    }
-    //for P3-P1 vector i.e., triangle leg
-    fDist1    = GetDist_2Pnts(fP3s, fP1s);
-    GetLotPunkt_PktGerade(fP3s, fP1s, fT, fL);
-    fDist2    = GetDist_2Pnts(fL, fP3s);
-    fDist3    = GetDist_2Pnts(fL, fP1s);
-    fDist4    = GetDist_2Pnts(fL, fT);
-    if ((fDist2 <= fDist1) && (fDist3 <= fDist1)) /*if both Schnittpunkt-Point lengths are equal or smaller than Point to Point length, then the Schnittpunkt lies between them and I have to check the distance*/
-    {   fThisFrac = (fDist4/fDist0 < fThisFrac) ? fDist4/fDist0 : fThisFrac;   
-    }
-    //-------------------------------------------------------------
-    return fThisFrac;
- }
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-void GetLotPunkt_PktGerade(float fP1[3], float fP2[3], float fT[3], float fL[3])
-{   float fP1toP2[3];
-    float s;
-    
-    fP1toP2[0] = fP2[0] - fP1[0];              fP1toP2[1] = fP2[1] - fP1[1];               fP1toP2[2] = fP2[2] - fP1[2];
-    s          = ( -(fP1[0]-fT[0])*fP1toP2[0] -(fP1[1]-fT[1])*fP1toP2[1] -(fP1[2]-fT[2])*fP1toP2[2]) / (fP1toP2[0]*fP1toP2[0] +fP1toP2[1]*fP1toP2[1] +fP1toP2[2]*fP1toP2[2]);
-    fL[0]      = fP1[0] +s*fP1toP2[0];
-    fL[1]      = fP1[1] +s*fP1toP2[1];
-    fL[2]      = fP1[2] +s*fP1toP2[2];
-
-    return;
-}
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 void GetNewPoints(float CurFrac, float fP1s[3], float fP2s[3], float fP3s[3], float fP1n[3], float fP2n[3], float fP3n[3])
 {   float Cent[3],  dCent2P1[3], dCent2P2[3], dCent2P3[3];
 
@@ -844,6 +529,20 @@ void GetNewPoints(float CurFrac, float fP1s[3], float fP2s[3], float fP3s[3], fl
     fP3n[0] = Cent[0]+CurFrac*dCent2P3[0];      fP3n[1] = Cent[1]+CurFrac*dCent2P3[1];          fP3n[2] = Cent[2]+CurFrac*dCent2P3[2];
 
     return;
+}
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+float GetArea(float fP1[3], float fP2[3], float fP3[3])
+{   float fP1toP2[3],       fP1toP3[3],      fNrm[3];
+    float fArea0;
+ 
+    fP1toP2[0] = fP2[0] - fP1[0];              fP1toP2[1] = fP2[1] - fP1[1];               fP1toP2[2] = fP2[2] - fP1[2];
+    fP1toP3[0] = fP3[0] - fP1[0];              fP1toP3[1] = fP3[1] - fP1[1];               fP1toP3[2] = fP3[2] - fP1[2];
+    fNrm[0]    = fP1toP2[1]*fP1toP3[2] - fP1toP2[2]*fP1toP3[1];
+    fNrm[1]    = fP1toP2[2]*fP1toP3[0] - fP1toP2[0]*fP1toP3[2];
+    fNrm[2]    = fP1toP2[0]*fP1toP3[1] - fP1toP2[1]*fP1toP3[0];
+	fArea0     = 0.5*sqrtf( fNrm[0]*fNrm[0] +fNrm[1]*fNrm[1] +fNrm[2]*fNrm[2]);
+    return fArea0;
 }
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
