@@ -1,0 +1,10 @@
+rm MCQsimJun2022
+
+mpicc -I~/gsl/include/gsl  MCQsim_Main_Jun2022.c  MCQsim_Load_Jun2022.c  MCQsim_BldK_Jun2022.c     MCQsim_StrainHS_Jun2022.c \
+ -L~/gsl/lib -lgsl -lgslcblas  -DHAVE_INLINE  -lmpich -lxml2 -lm -Wall -O3 -o MCQsimJun2022
+
+
+
+/bin/sleep 3
+
+

@@ -1,0 +1,7 @@
+rm MCQsimJun2022
+
+mpicc -I/usr/include/gsl                                                \
+MCQsim_Main_Jun2022.c  MCQsim_Load_Jun2022.c  MCQsim_BldK_Jun2022.c     MCQsim_StrainHS_Jun2022.c       \
+-DHAVE_INLINE  -L/usr/local/lib -lgsl -lgslcblas    -lm    -O3    -Wall \
+-o MCQsimJun2022
+
