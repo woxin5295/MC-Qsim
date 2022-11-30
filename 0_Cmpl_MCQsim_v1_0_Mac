@@ -1,0 +1,4 @@
+mpicc -I/usr/include/gsl                                                            \
+MCQsim_v1_0_Main.c  MCQsim_v1_0_Load.c  MCQsim_v1_0_BldK.c  MCQsim_v1_0_StrainHS.c  \
+-DHAVE_INLINE  -L/usr/local/lib -lgsl -lgslcblas    -lm    -O3    -Wall             \
+-o MCQsim_v1_0
