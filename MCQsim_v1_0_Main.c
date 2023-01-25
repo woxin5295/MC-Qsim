@@ -9,8 +9,6 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_rng.h>
-#include <gsl/gsl_sort_vector.h>
-#include <gsl/gsl_statistics_double.h>
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 struct MDstruct
@@ -154,7 +152,6 @@ int main(int argc, char **argv)
 
 	gsl_vector_int      *ivFL_Temp0,    *ivFG_Temp0;
 	gsl_vector_float 	*fvFG_Temp0,	*fvFG_Temp1,	*fvFG_Temp2, 	*fvFG_Temp3;
-	gsl_vector          *dvFl_Temp0;
 	gsl_vector_float 	*fvFL_Temp0,	*fvFL_Temp1,	*fvFL_Temp2;
 	gsl_vector_float 	*fvBG_Temp0,	*fvBG_Temp1,	*fvBG_Temp2,	*fvBG_Temp3,	*fvBG_Temp4,	*fvBG_Temp5;
 	gsl_vector_float 	*fvBL_Temp0,	*fvBL_Temp1,	*fvBL_Temp2;
@@ -261,7 +258,6 @@ int main(int argc, char **argv)
 		//--------------------------------------------------
 		if (MD.iBPNum > 0) //I'm using boundary box faults => use the slip boundary condition on the EQ faults to load the boundary faults; at the same time, also "load/release" stress on the EQfaults
         {   //----------------------------------------------------------------------------
-
         	for (k = 0; k < MD.iMaxIterat; k++)		//release the induced stress on fault elements iteratively to get corresponding/resulting average "slip-rate" on fault as defined back-slip approach; need this value for normalization
 			{	//-------------------------------------	
 				for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++)  // right now, I know the stressing amount on each fault element -as caused by back-slip; release this value via slip to get corresponding slip 
@@ -288,16 +284,16 @@ int main(int argc, char **argv)
 			for (i = 0; i <  MD.iFPNum; i++) //take the prescribed fault slip rates again and use to load the boundary fault elements
 			{   if (gsl_vector_int_get(ivFG_Temp0, i) < 3)		{		iTemp1++;		}
 			}
-			dvFl_Temp0 = gsl_vector_calloc(iTemp1);
 			//---------------------------
 			iTemp1 = 0;
+			gsl_vector_float_set_zero(fvFG_Temp0);
 			for (i = 0; i <  MD.iFPNum; i++) //take the prescribed fault slip rates again and use to load the boundary fault elements
 			{   if (gsl_vector_int_get(ivFG_Temp0, i) < 3)		
 				{	fTemp4 = sqrtf(gsl_vector_float_get(fvFG_Temp2,i)*gsl_vector_float_get(fvFG_Temp2,i) + gsl_vector_float_get(fvFG_Temp3,i)*gsl_vector_float_get(fvFG_Temp3,i));
-					gsl_vector_set(dvFl_Temp0 , iTemp1, (double)fTemp4);
+					gsl_vector_float_set(fvFG_Temp0 , iTemp1, fTemp4);
 					iTemp1++;	
 			}	}
-			fTemp4 = (float)gsl_stats_median(dvFl_Temp0->data, 1, iTemp1);
+			fTemp4 = gsl_blas_sasum(fvFG_Temp0);
 			//-------------------------------------------------- 
 			//--------------------------------------------------
         	
@@ -382,13 +378,14 @@ int main(int argc, char **argv)
 			//--------------------------------------------------
 			//--------------------------------------------------
 			iTemp1 = 0;
+			gsl_vector_float_set_zero(fvFG_Temp0);
 			for (i = 0; i <  MD.iFPNum; i++) //take the prescribed fault slip rates again and use to load the boundary fault elements
 			{   if (gsl_vector_int_get(ivFG_Temp0, i) < 3)	
 				{	fTemp5 = sqrtf(gsl_vector_float_get(fvFG_Temp2,i)*gsl_vector_float_get(fvFG_Temp2,i) + gsl_vector_float_get(fvFG_Temp3,i)*gsl_vector_float_get(fvFG_Temp3,i));
-					gsl_vector_set(dvFl_Temp0 , iTemp1, (double)fTemp5);
+					gsl_vector_float_set(fvFG_Temp0 , iTemp1, fTemp5);
 					iTemp1++;	
 			}	}
-			fTemp5 = (float)gsl_stats_median(dvFl_Temp0->data, 1, iTemp1);
+			fTemp5 = gsl_blas_sasum(fvFG_Temp0);
 			
 			gsl_vector_int_set_zero(ivFG_Temp0);	
 			gsl_vector_float_set_zero(fvFG_Temp2);	
