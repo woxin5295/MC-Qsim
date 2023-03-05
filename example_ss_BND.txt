@@ -1,0 +1,59 @@
+Number_of_boundary_segments:  5
+Combined_number_of_trig_patches_and_vertices:  5856   3214
+Mean_leg_length_and_area:  4.3106e+00  8.0294e+00
+
+Fault_section_name: Boundary_Bottom
+Easting_of_fault_top_center(km):  -6.0000e+01
+Northing_of_fault_top_center(km): 0.0000e+00
+Depth_of_fault_top_center(km):    -2.3000e+01
+Length_of_fault_section(km):      2.5000e+02
+Width_of_fault_section(km):       1.2000e+02
+Strike_of_fault_section(deg):     0.0000e+00
+Dip_of_fault_section(deg):        0.0000e+00
+Triangle_patch_number_of_boundary:   3772
+Triangle_vertex_number_of_boundary:  1974
+
+Fault_section_name: Boundary_East
+Easting_of_fault_top_center(km):  -6.0000e+01
+Northing_of_fault_top_center(km): 0.0000e+00
+Depth_of_fault_top_center(km):    0.0000e+00
+Length_of_fault_section(km):      2.5000e+02
+Width_of_fault_section(km):       2.3000e+01
+Strike_of_fault_section(deg):     0.0000e+00
+Dip_of_fault_section(deg):        9.0000e+01
+Triangle_patch_number_of_boundary:   708
+Triangle_vertex_number_of_boundary:  419
+
+Fault_section_name: Boundary_West
+Easting_of_fault_top_center(km):  6.0000e+01
+Northing_of_fault_top_center(km): 0.0000e+00
+Depth_of_fault_top_center(km):    0.0000e+00
+Length_of_fault_section(km):      2.5000e+02
+Width_of_fault_section(km):       2.3000e+01
+Strike_of_fault_section(deg):     0.0000e+00
+Dip_of_fault_section(deg):        9.0000e+01
+Triangle_patch_number_of_boundary:   708
+Triangle_vertex_number_of_boundary:  419
+
+Fault_section_name: Boundary_North
+Easting_of_fault_top_center(km):  0.0000e+00
+Northing_of_fault_top_center(km): 1.2500e+02
+Depth_of_fault_top_center(km):    0.0000e+00
+Length_of_fault_section(km):      1.2000e+02
+Width_of_fault_section(km):       2.3000e+01
+Strike_of_fault_section(deg):     9.0000e+01
+Dip_of_fault_section(deg):        9.0000e+01
+Triangle_patch_number_of_boundary:   334
+Triangle_vertex_number_of_boundary:  201
+
+Fault_section_name: Boundary_South
+Easting_of_fault_top_center(km):  0.0000e+00
+Northing_of_fault_top_center(km): -1.2500e+02
+Depth_of_fault_top_center(km):    0.0000e+00
+Length_of_fault_section(km):      1.2000e+02
+Width_of_fault_section(km):       2.3000e+01
+Strike_of_fault_section(deg):     9.0000e+01
+Dip_of_fault_section(deg):        9.0000e+01
+Triangle_patch_number_of_boundary:   334
+Triangle_vertex_number_of_boundary:  201
+
