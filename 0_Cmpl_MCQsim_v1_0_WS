@@ -1,5 +1,0 @@
-mpicc -I~/gsl/include/gsl                                                           \
-MCQsim_v1_0_Main.c  MCQsim_v1_0_Load.c  MCQsim_v1_0_BldK.c  MCQsim_v1_0_StrainHS.c  \
--DHAVE_INLINE -L~/gsl/lib -lgsl -lgslcblas    -lmpich -lxml2 -lm -Wall -O3          \
--o MCQsim_v1_0
-
