@@ -19,7 +19,7 @@
 #define WRITEWITHANDWITHOUTPROP 0
 
 #define CUTDISTANCE             1.0//for stiffness matrix -> when to flag values
-#define OVERSHOOTFRAC           0.25//VALUE MUST BE BETWEEN 0.0> and < 1.0; dynamic overshoot fraction;
+#define OVERSHOOTFRAC           0.10//VALUE MUST BE BETWEEN 0.0> and < 1.0; dynamic overshoot fraction;
 #define FRAC2STARTRUPT          1.02//VALUE MUST BE >= 1.0; determines by how much much stress must exceed static strength to initate rupture; value of 1.1 means 10%; 1.05 means 5%
 #define LOADINGSTEPINTSEIS      0.02//this is fraction of a day => 0.02 == 1/50'th of a day ~30min
 #define MAXITERATION4BOUNDARY   200
@@ -40,7 +40,7 @@ struct MDstruct
     int         iFPNum,                     iBPNum,                 iFVNum,                 iBVNum;
     int         iFSegNum,                   iBSegNum,               iChgBtwEQs,             iMaxSTFlgth;
     int         iGlobTTmax,                 iWritePos,              iLoadSteps,             iStepNum,           iEQcntr;
-    int         iTimeYears,                 iRecLgth,               iIseisItcntr,           iPSeisItcntr,       iSTFcntr;
+    int         iTimeYears,                 iRecLgth,               iSTFcntr;
 
     float       fAftrSlipTime,              fDeepRelaxTime,         fRecLgth,               fHealFact;
     float       fFltLegs,                   fBndLegs,               fMinMag4Prop,           fPSeis_Step;
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
     FreeSomeMemory(&TR, &VT);
     //------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------
-    PreloadTheFault(&MD, &TR, 0.99);
+    PreloadTheFault(&MD, &TR, 0.93);
     //------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------
@@ -295,7 +295,7 @@ int main(int argc, char **argv)
                         fTemp2 = fTemp0*gsl_vector_float_get(TR.fvBL_PSeis_T0_N, i); 
                         fTemp4 = fabs(gsl_vector_float_get(TR.fvBL_CurStrsN, i));
                         //------------------------------------------
-                        if ((fTemp3 - fTemp1) <= 0.01)
+                        if ((fTemp3 - fTemp1) <= 0.0)
                         {   gsl_vector_float_set(fvBL_Temp0, i, 0.0);       
                             gsl_vector_float_set(fvBL_Temp1, i, 0.0);                     
                         }
@@ -307,7 +307,7 @@ int main(int argc, char **argv)
                             iTemp0 = 1;
                         }                     
                         //------------------------------------------
-                        if ((fTemp4 - fTemp2) <= 0.01)
+                        if ((fTemp4 - fTemp2) <= 0.0)
                         {   gsl_vector_float_set(fvBL_Temp2, i, 0.0);                                                                   
                         }
                         else  
@@ -319,8 +319,7 @@ int main(int argc, char **argv)
                     MPI_Allreduce(MPI_IN_PLACE, &iTemp0, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
                     //--------------------------------------------------------------
                     if (iTemp0 == 1)
-                    {   MD.iPSeisItcntr++;
-                        MPI_Allgatherv(fvBL_Temp0->data, MD.ivB_OFFSET[MD.iRANK], MPI_FLOAT, fvBG_Temp0->data, MD.ivB_OFFSET, MD.ivB_START, MPI_FLOAT, MPI_COMM_WORLD);
+                    {   MPI_Allgatherv(fvBL_Temp0->data, MD.ivB_OFFSET[MD.iRANK], MPI_FLOAT, fvBG_Temp0->data, MD.ivB_OFFSET, MD.ivB_START, MPI_FLOAT, MPI_COMM_WORLD);
                         MPI_Allgatherv(fvBL_Temp1->data, MD.ivB_OFFSET[MD.iRANK], MPI_FLOAT, fvBG_Temp1->data, MD.ivB_OFFSET, MD.ivB_START, MPI_FLOAT, MPI_COMM_WORLD);
                         MPI_Allgatherv(fvBL_Temp2->data, MD.ivB_OFFSET[MD.iRANK], MPI_FLOAT, fvBG_Temp2->data, MD.ivB_OFFSET, MD.ivB_START, MPI_FLOAT, MPI_COMM_WORLD);
                     
@@ -365,7 +364,7 @@ int main(int argc, char **argv)
             {   if (TR.ivFL_StabT[i] != 1) 
                 {   fTemp3   = sqrtf(gsl_vector_float_get(TR.fvFL_CurStrsH, i)*gsl_vector_float_get(TR.fvFL_CurStrsH, i) + gsl_vector_float_get(TR.fvFL_CurStrsV, i)*gsl_vector_float_get(TR.fvFL_CurStrsV, i));
                     fTemp4   = fTemp3 - (gsl_vector_float_get(TR.fvFL_CurFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i)); //this is the excess stress (is excess if value > 0) I currently have with respect to curr strength
-                    if (fTemp4 >= 0.01) //if I have excess shear stress above current strength and I am not looking at an unstable patch
+                    if (fTemp4 > 0.0) //if I have excess shear stress above current strength and I am not looking at an unstable patch
                     {   
                         fTemp5   = (-1.0*((fTemp4/fTemp3)*gsl_vector_float_get(TR.fvFL_CurStrsH, i)) )/ gsl_vector_float_get(TR.fvFL_SelfStiffStk, i); // slip amount to release excess horizontal shear stress
                         gsl_vector_float_set(fvFL_Temp0, i, fTemp5);  //the strike slip component    
@@ -376,8 +375,7 @@ int main(int argc, char **argv)
             MPI_Allreduce(MPI_IN_PLACE, &iTemp0, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
             //--------------------------------------------------------------
             if (iTemp0 == 1)
-            {   MD.iIseisItcntr++;
-                MPI_Allgatherv(fvFL_Temp0->data, MD.ivF_OFFSET[MD.iRANK], MPI_FLOAT, fvFG_Temp0->data, MD.ivF_OFFSET, MD.ivF_START, MPI_FLOAT, MPI_COMM_WORLD);
+            {   MPI_Allgatherv(fvFL_Temp0->data, MD.ivF_OFFSET[MD.iRANK], MPI_FLOAT, fvFG_Temp0->data, MD.ivF_OFFSET, MD.ivF_START, MPI_FLOAT, MPI_COMM_WORLD);
                 MPI_Allgatherv(fvFL_Temp1->data, MD.ivF_OFFSET[MD.iRANK], MPI_FLOAT, fvFG_Temp1->data, MD.ivF_OFFSET, MD.ivF_START, MPI_FLOAT, MPI_COMM_WORLD);         
                 
                 cblas_sgemv(CblasRowMajor,CblasTrans, MD.iFPNum, MD.ivF_OFFSET[MD.iRANK], 1.0, K.FF_SS->data, MD.ivF_OFFSET[MD.iRANK], fvFG_Temp0->data, 1, 0.0, fvFL_Temp0->data, 1);      
@@ -422,11 +420,24 @@ int main(int argc, char **argv)
             gsl_vector_float_set_zero(EQ.fvL_EQslipH);                          gsl_vector_float_set_zero(EQ.fvL_EQslipV);                          
             gsl_matrix_float_set_zero(EQ.fmSTF_slip);                           gsl_matrix_float_set_zero(EQ.fmSTF_strength);
             gsl_vector_float_set_zero(fvFL_Temp0);                              gsl_vector_float_set_zero(fvFL_Temp1);  
-             
-   
-   
-   
-           
+
+
+            for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++)               
+            {   fTemp0   = gsl_vector_float_get(TR.fvFL_DynFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i)  - 1.0*gsl_vector_float_get(TR.fvFL_MeanSelfStiff,i) *gsl_vector_float_get(TR.fvFL_CurDcVal,i);
+                fTemp1   = gsl_vector_float_get(TR.fvFL_StaFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i);
+                fTemp0   = MAX(fTemp0, fTemp1) / (-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i));
+                gsl_vector_float_set(TR.fvFL_CurFric, i,     fTemp0);
+                gsl_vector_float_set(TR.fvFL_TempRefFric, i, fTemp0);  
+                
+                fTemp1   = fabs(gsl_vector_float_get(TR.fvFL_CurFric, i) - gsl_vector_float_get(TR.fvFL_DynFric, i))*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i);
+                
+                fTemp5   = MD.fVs*((fTemp1*1.0e+6)/MD.fShearMod);
+                fTemp5   = (fTemp5 > 0.01) ? fTemp5 : 0.01; //the 0.01 is the minimum slip "velocity" (1cm/s)
+                fTemp5   = fTemp5*MD.fRealDeltT;
+                gsl_vector_float_set(TR.fvFL_MaxSlip, i, fTemp5); 
+            }
+
+
             EQ.iActFPNum  =  0;               
             EQ.iMRFLgth   = -1;                 
             EQ.iTotlRuptT = -1;     
@@ -439,32 +450,6 @@ int main(int argc, char **argv)
                 //----------------------------------------------------
                 for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++) 
                 {   
-                
-    
-                
-                
-                
-                
-                    if (TR.ivFL_Activated[i] == 0)
-                    {
-                        fTemp0   = gsl_vector_float_get(TR.fvFL_DynFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i)  - 1.0*gsl_vector_float_get(TR.fvFL_MeanSelfStiff,i) *gsl_vector_float_get(TR.fvFL_CurDcVal,i);
-                        fTemp1   = gsl_vector_float_get(TR.fvFL_StaFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i);
-                        fTemp0   = MAX(fTemp0, fTemp1) / (-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i));
-                
-                        gsl_vector_float_set(TR.fvFL_CurFric, i, fTemp0);
-                        gsl_vector_float_memcpy(TR.fvFL_TempRefFric, TR.fvFL_CurFric);          
-                    }   
-                    fTemp1   = fabs(gsl_vector_float_get(TR.fvFL_CurFric, i) - gsl_vector_float_get(TR.fvFL_DynFric, i))*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i);
-                    fTemp1   = (fTemp1 > 0.01) ? fTemp1 : 0.01; //the 0.05 is the minimum slip "velocity"
-                    fTemp5   = MD.fVs*((fTemp1*1.0e+6)/MD.fShearMod) *MD.fRealDeltT; //my understanding of radiation dampening; limiting max. slip velovity; not sure about mix between shear velocity and time step == p-wave velocity	
-                   
-                    gsl_vector_float_set(TR.fvFL_MaxSlip, i, fTemp5); 
-            
-                   
-                
-                
-                
-                
                     fTemp0   = sqrtf(gsl_vector_float_get(TR.fvFL_CurStrsH, i)*gsl_vector_float_get(TR.fvFL_CurStrsH, i) + gsl_vector_float_get(TR.fvFL_CurStrsV, i)*gsl_vector_float_get(TR.fvFL_CurStrsV, i));
                     fTemp7   = (gsl_vector_float_get(TR.fvFL_CurStrsN, i) < 0.0 ) ? gsl_vector_float_get(TR.fvFL_CurStrsN, i) : 0.0 ;                           
                     gsl_vector_float_set(TR.fvFL_CurStrsN, i, fTemp7);
@@ -489,14 +474,15 @@ int main(int argc, char **argv)
                     }   }             
                     //------------------------------------------------
                     fTemp1 = (fTemp0 - fTemp7); //amount of excess stress above current friction level
-                    fTemp2 = (fTemp0 - fTemp8);//amount of excess stress above arrest friction level                    
+                    fTemp2 = (fTemp0 - fTemp8); //amount of excess stress above arrest friction level                    
                     //------------------------------------------------
                     if ((TR.ivFL_Activated[i] == 1) && (fTemp1 > 0.0) && (fTemp2 >= gsl_vector_float_get(TR.fvFL_OverShotStress, i)))                     
                     {   EQ.iStillOn          = 1;                       
                         EQ.iMRFLgth          = EQ.iTotlRuptT;       
                         TR.ivFL_Ptch_tDur[i] = EQ.iTotlRuptT - TR.ivFL_Ptch_t0[i] +1;   
-                        fTemp5               = MD.fVs*((fTemp1*1.0e+6)/MD.fShearMod) *MD.fRealDeltT; //my understanding of radiation dampening; limiting max. slip velovity; not sure about mix between shear velocity and time step == p-wave velocity
-                                
+
+                        fTemp5      = gsl_vector_float_get(TR.fvFL_MaxSlip, i);
+
                         fTemp2      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsH, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffStk, i); // slip amount to release excess horizontal shear stress
                         fTemp2      = fTemp5 < fabs(fTemp2) ?   SIGN(fTemp2)*fTemp5 : fTemp2;
                         gsl_vector_float_set(fvFL_Temp0, i, fTemp2); 
@@ -583,19 +569,6 @@ int main(int argc, char **argv)
                 gsl_vector_float_set_zero(EQ.fvL_EQslipH);          gsl_vector_float_set_zero(EQ.fvL_EQslipV);          
                 gsl_vector_float_set_zero(TR.fvFL_AccumSlp);        gsl_vector_float_set_zero(EQ.fvM_MRFvals);  
                 gsl_vector_float_set_zero(fvFL_Temp2);              gsl_vector_float_set_zero(fvFL_Temp3);      
-                //------------------------------------      
- /*               for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++)               
-                {   fTemp0   = gsl_vector_float_get(TR.fvFL_DynFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i)  - 1.0*gsl_vector_float_get(TR.fvFL_MeanSelfStiff,i) *gsl_vector_float_get(TR.fvFL_CurDcVal,i);
-                    fTemp1   = gsl_vector_float_get(TR.fvFL_StaFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i);
-                    fTemp0   = MAX(fTemp0, fTemp1) / (-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i));
-                    gsl_vector_float_set(TR.fvFL_CurFric, i, fTemp0);
-				
-	     	        fTemp1   = (fTemp0 - gsl_vector_float_get(TR.fvFL_DynFric, i))*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i);
-				    fTemp5   = MD.fVs*((fTemp1*1.0e+6)/MD.fShearMod) *MD.fRealDeltT; //my understanding of radiation dampening; limiting max. slip velovity; not sure about mix between shear velocity and time step == p-wave velocity	
-				    gsl_vector_float_set(TR.fvFL_MaxSlip, i, fTemp5); 
-                }    
-                gsl_vector_float_memcpy(TR.fvFL_TempRefFric, TR.fvFL_CurFric);
- */
                 //------------------------------------                    
                 for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++)   {   TR.ivFL_Ptch_t0[i]   = 0;       TR.ivFL_Ptch_tDur[i]   = 0;     TR.ivFL_Activated[i] = 0;           }           
                 EQ.iStillOn = 1;            EQ.iActFPNum = 0;       EQ.iMRFLgth = -1;               EQ.iTotlRuptT =-1;              EQ.iEndCntr   = 0;  
@@ -620,33 +593,6 @@ int main(int argc, char **argv)
                         gsl_matrix_float_set(EQ.fmFSL_H, iTpos0, i, 0.0);
                         gsl_matrix_float_set(EQ.fmFSL_V, iTpos0, i, 0.0);
                         gsl_matrix_float_set(EQ.fmFSL_N, iTpos0, i, 0.0);
-                        
-                        
-                        
-                        
-                
-                        
-                        
-                         if (TR.ivFL_Activated[i] == 0)
-                         {
-                            fTemp0   = gsl_vector_float_get(TR.fvFL_DynFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i)  - 1.0*gsl_vector_float_get(TR.fvFL_MeanSelfStiff,i) *gsl_vector_float_get(TR.fvFL_CurDcVal,i);
-                            fTemp1   = gsl_vector_float_get(TR.fvFL_StaFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i);
-                            fTemp0   = MAX(fTemp0, fTemp1) / (-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i));
-                
-                            gsl_vector_float_set(TR.fvFL_CurFric, i, fTemp0);
-                            gsl_vector_float_memcpy(TR.fvFL_TempRefFric, TR.fvFL_CurFric);          
-                        }
-                        
-                        fTemp1   = fabs(gsl_vector_float_get(TR.fvFL_CurFric, i) - gsl_vector_float_get(TR.fvFL_DynFric, i))*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i);
-                        fTemp5   = (fTemp1 > 0.01) ? fTemp1 : 0.01; //the 0.05 is the minimum slip "velocity"
-                        fTemp5   = MD.fVs*((fTemp1*1.0e+6)/MD.fShearMod) *MD.fRealDeltT; //my understanding of radiation dampening; limiting max. slip velovity; not sure about mix between shear velocity and time step == p-wave velocity	
-                        gsl_vector_float_set(TR.fvFL_MaxSlip, i, fTemp5); 
-            
-                   
-                        
-                        
-                        
-                        
                         //------------------------------------------------
                         fTemp0   = sqrtf(gsl_vector_float_get(TR.fvFL_CurStrsH, i)*gsl_vector_float_get(TR.fvFL_CurStrsH, i) + gsl_vector_float_get(TR.fvFL_CurStrsV, i)*gsl_vector_float_get(TR.fvFL_CurStrsV, i));
                         fTemp7   = (gsl_vector_float_get(TR.fvFL_CurStrsN, i) < 0.0 ) ? gsl_vector_float_get(TR.fvFL_CurStrsN, i) : 0.0 ;                           
@@ -677,20 +623,18 @@ int main(int argc, char **argv)
                         {   EQ.iStillOn          = 1;                       
                             EQ.iMRFLgth          = EQ.iTotlRuptT;  
                             TR.ivFL_Ptch_tDur[i] = EQ.iTotlRuptT - TR.ivFL_Ptch_t0[i] +1;     
-                            fTemp5               = MD.fVs*((fTemp1*1.0e+6)/MD.fShearMod) *MD.fRealDeltT; //my understanding of radiation dampening; limiting max. slip velovity; not sure about mix between shear velocity and time step == p-wave velocity
+                            
+                            fTemp5      = gsl_vector_float_get(TR.fvFL_MaxSlip, i);
                                             
                             gsl_vector_int_set(ivFL_Temp0, MD.iv_OFFST2[MD.iRANK], iGlobPos);   
                             //------------------------------------------------  
                             fTemp2      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsH, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffStk, i); // slip amount to release excess horizontal shear stress
                             fTemp2      = fTemp5 < fabs(fTemp2) ?   SIGN(fTemp2)*fTemp5 : fTemp2;
-                            
                             gsl_vector_float_set(fvFL_Temp2, i, fTemp2); 
                             gsl_vector_float_set(fvFL_Temp0, MD.iv_OFFST2[MD.iRANK], fTemp2);      
                             
-                
                             fTemp3      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsV, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffDip, i); // slip amount to release excess vertical shear stress 
-                            fTemp3      = fTemp5 < fabs(fTemp3) ?   SIGN(fTemp3)*fTemp5 : fTemp3;
-                            
+                            fTemp3      = fTemp5 < fabs(fTemp3) ?   SIGN(fTemp3)*fTemp5 : fTemp3; 
                             gsl_vector_float_set(fvFL_Temp3, i, fTemp3);
                             gsl_vector_float_set(fvFL_Temp1, MD.iv_OFFST2[MD.iRANK], fTemp3);
                             //------------------------------------------------
@@ -850,8 +794,6 @@ int main(int argc, char **argv)
         double time_taken;
         time_taken  = ((double)timer)/CLOCKS_PER_SEC;
         time_taken /= 60.0;
-        fprintf(stdout,"Total number of interseismic iterations: %d\n", MD.iTimeYears);
-        fprintf(stdout,"Number of COSEISMIC relaxations (earthquakes): %d\n\n",         MD.iEQcntr);
         fprintf(stdout,"Total RunTime in minutes: %6.2f\n",time_taken);
         fprintf(stdout,"Times iSize =>  total of %6.2f CPU hours\n\n",(time_taken*(float)MD.iSIZE)/60.0);
         fprintf(stdout,"STFcounter: %d\n",MD.iSTFcntr);
@@ -927,8 +869,6 @@ void InitializeVariables(struct MDstruct *MD, struct TRstruct *TR, struct VTstru
     MD->fPSeis_Step  = 0.0;
     MD->iEQcntr      = 0; //counting the number of events that were written to file
     MD->iSTFcntr     = 0;
-    MD->iPSeisItcntr = 0;
-    MD->iIseisItcntr = 0;
     MD->iLoadSteps   = 10;
     MD->iStepNum     = IntPow(2, MD->iLoadSteps);
 
@@ -1783,8 +1723,7 @@ void GetSlipLoadingAndWritePreRunData(struct MDstruct *MD, struct VTstruct *VT, 
     gsl_vector_float    *fvBG_Temp5    = gsl_vector_float_calloc(MD->iBPNum);           
     //------------------------------------------------------------------------------------ 
     if (HaveBoundarySlip == 1)
-    {   fprintf(stdout,"I am here\n");
-        for (i = 0; i < MD->ivF_OFFSET[MD->iRANK]; i++) 
+    {  for (i = 0; i < MD->ivF_OFFSET[MD->iRANK]; i++) 
         {   fTemp0   =  -1.0*cosf(TR->fvFL_SlipRake_temp[i])*TR->fvFL_SlipRate_temp[i]; //the -1.0 is here b/c this is back-slip...
             fTemp1   =  -1.0*sinf(TR->fvFL_SlipRake_temp[i])*TR->fvFL_SlipRate_temp[i];
             gsl_vector_float_set(fvFL_Temp0, i, fTemp0);  //the strike slip component            
