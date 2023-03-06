@@ -1,0 +1,11 @@
+Run_Parameter_Information
+InputName:                example_ss
+Realization_Number:       1
+UsePostSeis(0/1):         1
+UseRuptPropag(0/1):       0
+MinMagnitude4RupProp:     6.0
+Viscocity_AfterSlip:      3
+Viscosity_DeepRelax:      20
+EQrecordLength(years):    5000.0
+HealingDuringCoseis:      0.1
+RandSeedValue:            1234
