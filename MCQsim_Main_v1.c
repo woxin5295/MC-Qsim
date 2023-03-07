@@ -19,9 +19,10 @@
 #define WRITEWITHANDWITHOUTPROP 0
 
 #define CUTDISTANCE             1.0//for stiffness matrix -> when to flag values
-#define OVERSHOOTFRAC           0.10//VALUE MUST BE BETWEEN 0.0> and < 1.0; dynamic overshoot fraction;
+#define OVERSHOOTFRAC           1.20//dynamic overshoot factor;
 #define FRAC2STARTRUPT          1.02//VALUE MUST BE >= 1.0; determines by how much much stress must exceed static strength to initate rupture; value of 1.1 means 10%; 1.05 means 5%
-#define LOADINGSTEPINTSEIS      0.02//this is fraction of a day => 0.02 == 1/50'th of a day ~30min
+#define LOADINGSTEPINTSEIS      0.05//this is fraction of a day => 0.02 == 1/50'th of a day ~30min
+#define LOADSTEPS_POW2          12
 #define MAXITERATION4BOUNDARY   200
 #define MAXMOMRATEFUNCLENGTH    5000
 
@@ -131,11 +132,11 @@ struct EQstruct
 };
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
-void                   Build_K_Matrix(struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, struct  Kstruct *K);
 extern void          StrainHS_Nikkhoo(float Stress[6], float Strain[6], float X, float Y, float Z, float P1[3], float P2[3], float P3[3], float SS, float Ds, float Ts, const float mu, const float lambda);
 
 void              InitializeVariables(struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, struct EQstruct *EQ,  struct Kstruct *K, char **argv);
 int                         LoadInput(struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, struct EQstruct *EQ);
+void                   Build_K_Matrix(struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, struct  Kstruct *K);
 void GetSlipLoadingAndWritePreRunData(struct MDstruct *MD, struct VTstruct *VT, struct TRstruct *TR, struct Kstruct *K,char *cFile2_Out,int HaveBoundarySlip);
 MPI_Offset         StartEQcatalogFile(MPI_File fp_MPIOUT,  struct MDstruct *MD, struct VTstruct *VT, struct TRstruct *TR);
 void                   FreeSomeMemory(struct TRstruct *TR, struct VTstruct *VT);
@@ -295,7 +296,7 @@ int main(int argc, char **argv)
                         fTemp2 = fTemp0*gsl_vector_float_get(TR.fvBL_PSeis_T0_N, i); 
                         fTemp4 = fabs(gsl_vector_float_get(TR.fvBL_CurStrsN, i));
                         //------------------------------------------
-                        if ((fTemp3 - fTemp1) <= 0.0)
+                        if ((fTemp3 - fTemp1) <= 0.01)
                         {   gsl_vector_float_set(fvBL_Temp0, i, 0.0);       
                             gsl_vector_float_set(fvBL_Temp1, i, 0.0);                     
                         }
@@ -307,7 +308,7 @@ int main(int argc, char **argv)
                             iTemp0 = 1;
                         }                     
                         //------------------------------------------
-                        if ((fTemp4 - fTemp2) <= 0.0)
+                        if ((fTemp4 - fTemp2) <= 0.01)
                         {   gsl_vector_float_set(fvBL_Temp2, i, 0.0);                                                                   
                         }
                         else  
@@ -364,7 +365,7 @@ int main(int argc, char **argv)
             {   if (TR.ivFL_StabT[i] != 1) 
                 {   fTemp3   = sqrtf(gsl_vector_float_get(TR.fvFL_CurStrsH, i)*gsl_vector_float_get(TR.fvFL_CurStrsH, i) + gsl_vector_float_get(TR.fvFL_CurStrsV, i)*gsl_vector_float_get(TR.fvFL_CurStrsV, i));
                     fTemp4   = fTemp3 - (gsl_vector_float_get(TR.fvFL_CurFric, i)*-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i)); //this is the excess stress (is excess if value > 0) I currently have with respect to curr strength
-                    if (fTemp4 > 0.0) //if I have excess shear stress above current strength and I am not looking at an unstable patch
+                    if (fTemp4 > 0.01) //if I have excess shear stress above current strength and I am not looking at an unstable patch
                     {   
                         fTemp5   = (-1.0*((fTemp4/fTemp3)*gsl_vector_float_get(TR.fvFL_CurStrsH, i)) )/ gsl_vector_float_get(TR.fvFL_SelfStiffStk, i); // slip amount to release excess horizontal shear stress
                         gsl_vector_float_set(fvFL_Temp0, i, fTemp5);  //the strike slip component    
@@ -869,7 +870,7 @@ void InitializeVariables(struct MDstruct *MD, struct TRstruct *TR, struct VTstru
     MD->fPSeis_Step  = 0.0;
     MD->iEQcntr      = 0; //counting the number of events that were written to file
     MD->iSTFcntr     = 0;
-    MD->iLoadSteps   = 10;
+    MD->iLoadSteps   = LOADSTEPS_POW2;
     MD->iStepNum     = IntPow(2, MD->iLoadSteps);
 
     EQ->iEndCntr     = 0; //this counter is used to check if an event is really over (at the end of EQ while loop)
@@ -1098,13 +1099,10 @@ int LoadInput(struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, str
     int     i,                  j,                  iGlobPos;
     int     iTemp0,             iTemp1;
     float   fCombMemory;
-    float   fTemp0,             fTemp1,             fTemp2,             fTemp3,         fTemp4;
-    float   fTemp5,             fTemp6,             fTemp7,             fTemp8;
+    float   fTemp0,             fTemp1,             fTemp2,             fTemp3;
+    float   fTemp4,             fTemp6,             fTemp7,             fTemp8;
     float   fP1[3],             fP2[3],             fP3[3],             fP1P2[3],       fP1P3[3];       
     float   fvNrm[3],           fvStk[3],           fvDip[3],           feZ[3],         fSrcRcvVect[3];
-    
-    gsl_vector_float            *fvL_Temp0;
-    fvL_Temp0 =  gsl_vector_float_calloc(MD->ivF_OFFSET[MD->iRANK]);
     
     char    ctempVals[512],     cAppend[512];
     char    cFileName1[512],    cFileName2[512],    cFileName3[512],    cFileName4[512];
@@ -1210,10 +1208,6 @@ int LoadInput(struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, str
     fseek(fp3, (1L*sizeof(float)*(long)(MD->ivF_START[MD->iRANK])), SEEK_CUR); //skip the part that is in front of segId for specific RANK
     if (fread(TR->fvFL_DcMod_temp->data,      sizeof(float),MD->ivF_OFFSET[MD->iRANK],fp3) != MD->ivF_OFFSET[MD->iRANK])            {   exit(10);   }
     fseek(fp3, (1L*sizeof(float)*(long)(MD->iFPNum - MD->ivF_START[MD->iRANK] - MD->ivF_OFFSET[MD->iRANK])), SEEK_CUR); //skip over to end of SegIDs => in total i will have moved by MD->iFPNum
-    
-    fseek(fp3, (1L*sizeof(float)*(long)(MD->ivF_START[MD->iRANK])), SEEK_CUR); //skip the part that is in front of segId for specific RANK
-    if (fread(TR->ivFL_FricLaw,         sizeof( int),MD->ivF_OFFSET[MD->iRANK],fp3) != MD->ivF_OFFSET[MD->iRANK])           {   exit(10);   }
-    fseek(fp3, (1L*sizeof(float)*(long)(MD->iFPNum - MD->ivF_START[MD->iRANK] - MD->ivF_OFFSET[MD->iRANK])), SEEK_CUR); //skip over to end of SegIDs => in total i will have moved by MD->iFPNum
     //-------------------------------------
     fclose(fp3);
     //------------------------------------------------------------------------------------     
@@ -1262,19 +1256,13 @@ int LoadInput(struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, str
     {   TR->ivBG_V1_temp[i]        -= 1;                TR->ivBG_V2_temp[i]       -= 1;              TR->ivBG_V3_temp[i]       -= 1;                  
         TR->fvBG_CentE_temp[i]  *= 1000.0;              TR->fvBG_CentN_temp[i]    *= 1000.0;         TR->fvBG_CentZ_temp[i]    *= 1000.0; 
     }
-    //------------------------------------------------------------------------------------   
-    gsl_vector_float_memcpy(fvL_Temp0, TR->fvFL_RefDcVal);              gsl_vector_float_add(fvL_Temp0, TR->fvFL_DcMod_temp);               
-    gsl_vector_float_scale(TR->fvFL_RefDcVal_vari, 0.01);               gsl_vector_float_mul(TR->fvFL_RefDcVal_vari, TR->fvFL_RefDcVal);                        
-    gsl_vector_float_div(TR->fvFL_RefDcVal_vari, fvL_Temp0);
-    
-    gsl_vector_float_memcpy(fvL_Temp0, TR->fvFL_RefStaFric);            gsl_vector_float_add(fvL_Temp0, TR->fvFL_StaFricMod_temp);              
+    //------------------------------------------------------------------------------------               
+    gsl_vector_float_scale(TR->fvFL_RefDcVal_vari,   0.01);             gsl_vector_float_mul(TR->fvFL_RefDcVal_vari, TR->fvFL_RefDcVal);                        
+              
     gsl_vector_float_scale(TR->fvFL_RefStaFric_vari, 0.01);             gsl_vector_float_mul(TR->fvFL_RefStaFric_vari, TR->fvFL_RefStaFric);                        
-    gsl_vector_float_div(TR->fvFL_RefStaFric_vari, fvL_Temp0);
-
-    gsl_vector_float_memcpy(fvL_Temp0, TR->fvFL_RefDynFric);            gsl_vector_float_add(fvL_Temp0, TR->fvFL_DynFricMod_temp);              
-    gsl_vector_float_scale(TR->fvFL_RefDynFric_vari, 0.01);             gsl_vector_float_mul(TR->fvFL_RefDynFric_vari, TR->fvFL_RefDynFric);                        
-    gsl_vector_float_div(TR->fvFL_RefDynFric_vari, fvL_Temp0);
-
+        
+    gsl_vector_float_scale(TR->fvFL_RefDynFric_vari, 0.01);             gsl_vector_float_mul(TR->fvFL_RefDynFric_vari, TR->fvFL_RefDynFric);  
+       
     gsl_vector_float_scale(TR->fvFL_NrmStrsMod_temp, -1.0);
 
     gsl_vector_float_add(TR->fvFL_RefStaFric, TR->fvFL_StaFricMod_temp);
@@ -1296,22 +1284,21 @@ int LoadInput(struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, str
         if (fabs(TR->fvFL_SlipRate_temp[i]) > 0.0)          {       iHasSlip = 1;       } 
         //------------------------//------------------------    
         fTemp2                     = (float)(gsl_rng_uniform(fRandN) *2.0 -1.0); //is a random number between -1 and 1
-        fTemp1                     = gsl_vector_float_get(TR->fvFL_RefDcVal, i)  *(1.0 + gsl_vector_float_get(TR->fvFL_RefDcVal_vari, i)*fTemp2);
+        fTemp1                     = gsl_vector_float_get(TR->fvFL_RefDcVal, i)    + gsl_vector_float_get(TR->fvFL_RefDcVal_vari,   i)*fTemp2;
         gsl_vector_float_set(TR->fvFL_CurDcVal,i, fTemp1);
         //------------------------
         fTemp2                     = (float)(gsl_rng_uniform(fRandN) *2.0 -1.0); //is a random number between -1 and 1
-        fTemp1                     = gsl_vector_float_get(TR->fvFL_RefStaFric, i)  *(1.0 + gsl_vector_float_get(TR->fvFL_RefStaFric_vari, i)*fTemp2); 
+        fTemp1                     = gsl_vector_float_get(TR->fvFL_RefStaFric, i)  + gsl_vector_float_get(TR->fvFL_RefStaFric_vari, i)*fTemp2; 
         gsl_vector_float_set(TR->fvFL_StaFric, i, fTemp1);     
         gsl_vector_float_set(TR->fvFL_CurFric, i, fTemp1);
         //------------------------
         fTemp2                     = (float)(gsl_rng_uniform(fRandN) *2.0 -1.0); //is a random number between -1 and 1
-        fTemp1                     = (gsl_vector_float_get(TR->fvFL_RefStaFric, i) - gsl_vector_float_get(TR->fvFL_RefDynFric, i)) / gsl_vector_float_get(TR->fvFL_RefStaFric, i); //reference friction change as fraction of static coefficient   
-        fTemp3                     = fTemp1*(1.0 + gsl_vector_float_get(TR->fvFL_RefDynFric_vari, i)*fTemp2); //calculation of dyn friction coefficient looks a bit more complicated, this is because this value is defined relative to the static coefficent i.e., as a fraction change of that coefficient
-        fTemp4                     = gsl_vector_float_get(TR->fvFL_StaFric, i) *(1.0 - fTemp3);
-        fTemp5                     = fTemp4 - OVERSHOOTFRAC *fabs(gsl_vector_float_get(TR->fvFL_StaFric, i) - fTemp4); //this friction is the "arrest friction" i.e., the dynamic overshoot friction value (the "lowest posssible")     
-        gsl_vector_float_set(TR->fvFL_DynFric, i, fTemp4);
-        gsl_vector_float_set(TR->fvFL_ArrFric, i, fTemp5);
-        fTemp6                     = (fTemp4 - fTemp5)*-1.0*gsl_vector_float_get(TR->fvFL_RefNrmStrs,i); //this is "dynamic fric" minus "arrest fric" multiplied with normal stress => gives amount of excess above arrest fric to continue sliding => corresponds to "dyn fric" level
+        fTemp3                     = gsl_vector_float_get(TR->fvFL_RefDynFric, i)  + gsl_vector_float_get(TR->fvFL_RefDynFric_vari, i)*fTemp2; 
+        gsl_vector_float_set(TR->fvFL_DynFric, i, fTemp3);
+        fTemp4                     = fTemp3 - (OVERSHOOTFRAC-1.0) *fabs(fTemp1 -fTemp3); //this friction is the "arrest friction" i.e., the dynamic overshoot friction value (the "lowest posssible")     
+        gsl_vector_float_set(TR->fvFL_ArrFric, i, fTemp4);
+        
+        fTemp6                     = (fTemp3 - fTemp4)*-1.0*gsl_vector_float_get(TR->fvFL_RefNrmStrs,i); //this is "dynamic fric" minus "arrest fric" multiplied with normal stress => gives amount of excess above arrest fric to continue sliding => corresponds to "dyn fric" level
         gsl_vector_float_set(TR->fvFL_OverShotStress, i, fTemp6);
         //-------------------------------------------------------------------------------
         GetVertices(VT,TR,iGlobPos, 0, fP1, fP2, fP3); 
@@ -2139,28 +2126,28 @@ MPI_Offset WriteEQ_STFsFile(MPI_File fp_STFOUT, MPI_Offset OFFSETstf, struct MDs
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 void ResetFaultParameter(struct MDstruct *MD, struct TRstruct *TR, gsl_rng *fRandN)
 {   int   i;
-    float fTemp0, fTemp1, fTemp2, fTemp3, fTemp4, fTemp5, fTemp6;
+    float fTemp0, fTemp1, fTemp2, fTemp3, fTemp4, fTemp6;
     //------------------------
     for (i = 0; i < MD->ivF_OFFSET[MD->iRANK]; i++) 
     {   //-----------------------------------------
         if (TR->ivFL_Activated[i] == 1)     
         {   if (MD->iChgBtwEQs == 1)
             {   fTemp2                     = (float)(gsl_rng_uniform(fRandN) *2.0 -1.0); //is a random number between -1 and 1
-                 fTemp1                     = gsl_vector_float_get(TR->fvFL_RefDcVal, i)  *(1.0 + gsl_vector_float_get(TR->fvFL_RefDcVal_vari, i)*fTemp2);
+                fTemp1                     = gsl_vector_float_get(TR->fvFL_RefDcVal, i)    + gsl_vector_float_get(TR->fvFL_RefDcVal_vari,   i)*fTemp2;
                 gsl_vector_float_set(TR->fvFL_CurDcVal,i, fTemp1);
                 //------------------------
                 fTemp2                     = (float)(gsl_rng_uniform(fRandN) *2.0 -1.0); //is a random number between -1 and 1
-                fTemp1                     = gsl_vector_float_get(TR->fvFL_RefStaFric, i)  *(1.0 + gsl_vector_float_get(TR->fvFL_RefStaFric_vari, i)*fTemp2); 
+                fTemp1                     = gsl_vector_float_get(TR->fvFL_RefStaFric, i)  + gsl_vector_float_get(TR->fvFL_RefStaFric_vari, i)*fTemp2; 
                 gsl_vector_float_set(TR->fvFL_StaFric, i, fTemp1);     
+                gsl_vector_float_set(TR->fvFL_CurFric, i, fTemp1);
                 //------------------------
                 fTemp2                     = (float)(gsl_rng_uniform(fRandN) *2.0 -1.0); //is a random number between -1 and 1
-                fTemp1                     = (gsl_vector_float_get(TR->fvFL_RefStaFric, i) - gsl_vector_float_get(TR->fvFL_RefDynFric, i)) / gsl_vector_float_get(TR->fvFL_RefStaFric, i); //reference friction change as fraction of static coefficient   
-                fTemp3                     = fTemp1*(1.0 + gsl_vector_float_get(TR->fvFL_RefDynFric_vari, i)*fTemp2); //calculation of dyn friction coefficient looks a bit more complicated, this is because this value is defined relative to the static coefficent i.e., as a fraction change of that coefficient
-                fTemp4                     = gsl_vector_float_get(TR->fvFL_StaFric, i) *(1.0 - fTemp3);
-                fTemp5                     = fTemp4 - OVERSHOOTFRAC *fabs(gsl_vector_float_get(TR->fvFL_StaFric, i) - fTemp4); //this friction is the "arrest friction" i.e., the dynamic overshoot friction value (the "lowest posssible")
-                gsl_vector_float_set(TR->fvFL_DynFric, i, fTemp4);
-                gsl_vector_float_set(TR->fvFL_ArrFric, i, fTemp5);
-                fTemp6                     = (fTemp4 - fTemp5)*-1.0*gsl_vector_float_get(TR->fvFL_RefNrmStrs,i); //this is "dynamic fric" minus "arrest fric" multiplied with normal stress => gives amount of excess above arrest fric to continue sliding => corresponds to "dyn fric" level
+                fTemp3                     = gsl_vector_float_get(TR->fvFL_RefDynFric, i)  + gsl_vector_float_get(TR->fvFL_RefDynFric_vari, i)*fTemp2; 
+                gsl_vector_float_set(TR->fvFL_DynFric, i, fTemp3);
+                fTemp4                     = fTemp3 - (OVERSHOOTFRAC-1.0) *fabs(fTemp1 -fTemp3); //this friction is the "arrest friction" i.e., the dynamic overshoot friction value (the "lowest posssible")     
+                gsl_vector_float_set(TR->fvFL_ArrFric, i, fTemp4);
+        
+                fTemp6                     = (fTemp3 - fTemp4)*-1.0*gsl_vector_float_get(TR->fvFL_RefNrmStrs,i); //this is "dynamic fric" minus "arrest fric" multiplied with normal stress => gives amount of excess above arrest fric to continue sliding => corresponds to "dyn fric" level
                 gsl_vector_float_set(TR->fvFL_OverShotStress, i, fTemp6);
                 //------------------------ 
                 fTemp2 = (gsl_vector_float_get(TR->fvFL_DynFric,i) - gsl_vector_float_get(TR->fvFL_StaFric,i)) *-1.0*gsl_vector_float_get(TR->fvFL_RefNrmStrs,i); //gives a negative shear stress b/c of (dynF - staF)

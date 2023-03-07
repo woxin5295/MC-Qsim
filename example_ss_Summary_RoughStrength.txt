@@ -24,7 +24,7 @@ NonLin_ScaleFactor:    1.0000e+00
 PreFactor:             1.0000e-02
 PreFator_vari_Amount:  0.0000e+00
 Strength/Friction Parameters:    
-Used_FrictionType_(1==stat/dyn;2==slip-weak;3==velo-weak:      2
+Used_FrictionType:      linear slip weakening
 StaticFric_value:       6.0000e-01
 StaticFric_vari_value:  3.0000e+00
 DynamicFric_value:      5.4000e-01
