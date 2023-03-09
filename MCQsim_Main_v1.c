@@ -6,6 +6,8 @@
 #include <mpi.h>
 #include <time.h>
 #include <gsl/gsl_vector.h>
+#include <gsl/gsl_sort_float.h>
+#include <gsl/gsl_statistics_float.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_cblas.h>
@@ -19,10 +21,11 @@
 #define WRITEWITHANDWITHOUTPROP 0
 
 #define CUTDISTANCE             0.5//K-matrix related, for flagging bad (too close) elements
+#define PRESTRESSFRACTION       0.95
 #define OVERSHOOTFRAC           1.25//dynamic overshoot factor
 #define FRAC2STARTRUPT          1.02//required excess to activate fault element coseismically
 #define LOADINGSTEPINTSEIS      0.02//this is fraction of a day => 0.02 == 1/50'th of a day ~30min
-#define LOADSTEPS_POW2          5 //suggested number of loading steps to take at once (pow_2 => value of 5 means 32 steps)
+#define LOADSTEPS_POW2          8 //suggested number of loading steps to take at once (pow_2 => value of 5 means 32 steps)
 #define MAXITERATION4BOUNDARY   200
 #define MAXMOMRATEFUNCLENGTH    5000
 
@@ -241,7 +244,7 @@ int main(int argc, char **argv)
     FreeSomeMemory(&TR, &VT);
     //------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------
-    PreloadTheFault(&MD, &TR, 0.95);
+    PreloadTheFault(&MD, &TR, PRESTRESSFRACTION);
     //------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------
@@ -1395,7 +1398,7 @@ if (WRITESTFOFEACHELEMENT == 1) {   MD->iMaxSTFlgth =  MAXMOMRATEFUNCLENGTH;    
 void Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *VT, struct  Kstruct *K, gsl_rng *fRandN)
 {   
     //------------------------------------------------------------------------------------  
-    int     i,                  j,              iGlobPos,           iCntFlags_F = 0;//    iSrcFltID,      iRcvFltID;       
+    int     i,                  j,              iGlobPos,           iCntFlags_F = 0,    iSrcFltID,      iRcvFltID;       
     float   fTemp0,             fTemp1,         fTemp2,             fTemp3,             fTemp4,         fTemp5;
     float   fTemp6,             fTemp7,         fTemp8,             fTempB,             fTempC;
     float   fTempD,             fTempE,         fTempF,             fTempG,             fMinDist,       fSrcLgth;
@@ -1405,7 +1408,7 @@ void Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *
     for (i = 0; i < MD->iFPNum;  i++)   //going through the sources
     {   GetVertices(VT, TR, i, 0, fP1s, fP2s, fP3s); 
         //iSrcFltID    = TR->ivFG_FltID_temp[i];
-        //iSrcFltID    = TR->ivFG_SegID_temp[i];
+        iSrcFltID    = TR->ivFG_SegID_temp[i];
         fSrcPt[0]    = TR->fvFG_CentE_temp[i];              fSrcPt[1] = TR->fvFG_CentN_temp[i];             fSrcPt[2] = TR->fvFG_CentZ_temp[i];
         fSrcLgth     = GetDistance(fP1s, fP2s);             fSrcLgth += GetDistance(fP2s, fP3s);            fSrcLgth += GetDistance(fP3s, fP1s);                    fSrcLgth /= 3.0;    
         //-----------------------------------------------
@@ -1413,7 +1416,7 @@ void Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *
         {   iGlobPos     = j + MD->ivF_START[MD->iRANK];  
             GetVertices(VT, TR, iGlobPos, 0, fP1r, fP2r, fP3r);  
             //iRcvFltID    = TR->ivFG_FltID_temp[iGlobPos];        
-            //iRcvFltID    = TR->ivFG_SegID_temp[iGlobPos];        
+            iRcvFltID    = TR->ivFG_SegID_temp[iGlobPos];        
             fRcvPt[0]    = TR->fvFG_CentE_temp[iGlobPos];   fRcvPt[1]= TR->fvFG_CentN_temp[iGlobPos];       fRcvPt[2]= TR->fvFG_CentZ_temp[iGlobPos];    
             //----------------------------------------------- 
             fMinDist     = sqrtf((fSrcPt[0]-fRcvPt[0])*(fSrcPt[0]-fRcvPt[0]) + (fSrcPt[1]-fRcvPt[1])*(fSrcPt[1]-fRcvPt[1]) + (fSrcPt[2]-fRcvPt[2])*(fSrcPt[2]-fRcvPt[2]));
@@ -1422,8 +1425,8 @@ void Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *
             //-------------------------------  
             fTemp0 = 0.0;       fTemp1 = 0.0;       fTemp2 = 0.0;       fTemp3 = 0.0;       fTemp4 = 0.0;       fTemp5 = 0.0;           fTemp6 = 0.0;       fTemp7 = 0.0;       fTemp8 = 0.0;       
 
-            //if ( (iSrcFltID == iRcvFltID) || (fMinDist > CUTDISTANCE*fSrcLgth) ) 
-            if ( (i == iGlobPos) || (fMinDist > CUTDISTANCE*fSrcLgth) ) //if "self" or distance is larger than 1.0 UsedLgLength's then I can proceed as normal
+            if ( (iSrcFltID == iRcvFltID) || (fMinDist > CUTDISTANCE*fSrcLgth) ) 
+            //if ( (i == iGlobPos) || (fMinDist > CUTDISTANCE*fSrcLgth) ) //if "self" or distance is larger than 1.0 UsedLgLength's then I can proceed as normal
             {   
                 StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2s, fP3s, MD->fUnitSlipF, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
                 //-----------------------------------------------  
@@ -1531,14 +1534,14 @@ void Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *
     for (i = 0; i <MD->iBPNum; i++)   //going through the sources
     {   
         GetVertices(VT, TR, i, 1, fP1s, fP2s, fP3s); 
-        //iSrcFltID    = TR->ivBG_SegID_temp[i];     
+        iSrcFltID    = TR->ivBG_SegID_temp[i];     
         fSrcPt[0]    = TR->fvBG_CentE_temp[i];              fSrcPt[1]= TR->fvBG_CentN_temp[i];              fSrcPt[2]= TR->fvBG_CentZ_temp[i];
         fSrcLgth     = GetDistance(fP1s, fP2s);             fSrcLgth+= GetDistance(fP2s, fP3s);             fSrcLgth+= GetDistance(fP3s, fP1s);                     fSrcLgth    /= 3.0;    
         //----------------------------------------------- 
         for (j = 0; j < MD->ivB_OFFSET[MD->iRANK]; j++)// going through the receivers
         {   iGlobPos     = j + MD->ivB_START[MD->iRANK];       
             GetVertices(VT, TR, iGlobPos, 1, fP1r, fP2r, fP3r);  
-            //iRcvFltID    = TR->ivBG_SegID_temp[iGlobPos];        
+            iRcvFltID    = TR->ivBG_SegID_temp[iGlobPos];        
             fRcvPt[0]    = TR->fvBG_CentE_temp[iGlobPos];   fRcvPt[1]= TR->fvBG_CentN_temp[iGlobPos];       fRcvPt[2]= TR->fvBG_CentZ_temp[iGlobPos];        
             //-----------------------------------------------
             fMinDist     = sqrtf((fSrcPt[0]-fRcvPt[0])*(fSrcPt[0]-fRcvPt[0]) + (fSrcPt[1]-fRcvPt[1])*(fSrcPt[1]-fRcvPt[1]) + (fSrcPt[2]-fRcvPt[2])*(fSrcPt[2]-fRcvPt[2]));
@@ -1548,8 +1551,8 @@ void Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *
               
             fTemp0 = 0.0;       fTemp1 = 0.0;       fTemp2 = 0.0;           fTemp3 = 0.0;           fTemp4 = 0.0;           fTemp5 = 0.0;       fTemp6 = 0.0;       fTemp7 = 0.0;           fTemp8 = 0.0; 
 
-            //if ( (iSrcFltID == iRcvFltID) || (fMinDist > CUTDISTANCE*fSrcLgth) ) 
-            if ( (i == iGlobPos) || (fMinDist > CUTDISTANCE*fSrcLgth) ) //if "self" or distance is larger than 1.0 UsedLgLength's then I can proceed as normal
+            if ( (iSrcFltID == iRcvFltID) || (fMinDist > CUTDISTANCE*fSrcLgth) ) 
+         //   if ( (i == iGlobPos) || (fMinDist > CUTDISTANCE*fSrcLgth) ) //if "self" or distance is larger than 1.0 UsedLgLength's then I can proceed as normal
             { 
                 StrainHS_Nikkhoo(fStress, fStressOut, fRcvPt[0], fRcvPt[1], fRcvPt[2], fP1s, fP2s, fP3s, MD->fUnitSlipB, 0.0, 0.0, MD->fShearMod, MD->fLambda);         // slip in stk         
                 //-----------------------------------------------  
@@ -1655,7 +1658,7 @@ void Build_K_Matrix( struct MDstruct *MD, struct TRstruct *TR, struct VTstruct *
 
         fTemp6 = fTemp5 - OVERSHOOTFRAC*(fTemp5 - fTemp2);//determine arrest friction
         gsl_vector_float_set(TR->fvFL_ArrFric, i, fTemp6);
-        fTemp6 = (fTemp2 - fTemp6)*fTemp0; //determien overshotstress; difference between arrest and dynamic strength
+        fTemp6 = (fTemp2 - fTemp6)*fTemp0; //determine overshotstress; difference between arrest and dynamic strength
         gsl_vector_float_set(TR->fvFL_OverShotStress, i, fTemp6);
         //------------------------
         fTemp7 = (fTemp1-fTemp2)*fTemp0; //strength difference; positive when weakening
@@ -1680,7 +1683,7 @@ void GetSlipLoadingAndWritePreRunData(struct MDstruct *MD, struct VTstruct *VT, 
 {
     int   i, k;
     float fTemp0, fTemp1;
-    float fTempA, fTempB, fTempC;
+    float fTempA, fTempB, fTempC = 1.0;
     FILE *fpPre;
     //------------------------------------------------------------------------------------  
     gsl_vector_float    *fvFL_Temp0    = gsl_vector_float_calloc(MD->ivF_OFFSET[MD->iRANK]);    
@@ -1702,7 +1705,7 @@ void GetSlipLoadingAndWritePreRunData(struct MDstruct *MD, struct VTstruct *VT, 
     gsl_vector_float    *fvBG_Temp2    = gsl_vector_float_calloc(MD->iBPNum);       
     gsl_vector_float    *fvBG_Temp3    = gsl_vector_float_calloc(MD->iBPNum);                               
     gsl_vector_float    *fvBG_Temp4    = gsl_vector_float_calloc(MD->iBPNum);                                       
-    gsl_vector_float    *fvBG_Temp5    = gsl_vector_float_calloc(MD->iBPNum);           
+    gsl_vector_float    *fvBG_Temp5    = gsl_vector_float_calloc(MD->iBPNum);        
     //------------------------------------------------------------------------------------ 
     if (HaveBoundarySlip == 1)
     {  for (i = 0; i < MD->ivF_OFFSET[MD->iRANK]; i++) 
@@ -1730,14 +1733,20 @@ void GetSlipLoadingAndWritePreRunData(struct MDstruct *MD, struct VTstruct *VT, 
         //--------------------------------------------------------------------------------
         if (MD->iBPNum > 0)
         {   //----------------------------------------------------------------------------
-            fTempA = 0.0;
+            for (i = 0; i < MD->iSIZE; i++)              {    MD->iv_STRT2[i]  = 0;           MD->iv_OFFST2[i] = 0;    }    
             for (i = 0; i < MD->ivF_OFFSET[MD->iRANK]; i++)     
             {   if (TR->ivFL_StabT[i]  == 1)      //add all induced stresses from patches that are NOT stable (use cond. stable and unstable)
                 {   fTemp0  = sqrtf(gsl_vector_float_get(TR->fvFL_CurStrsH, i)*gsl_vector_float_get(TR->fvFL_CurStrsH, i) + gsl_vector_float_get(TR->fvFL_CurStrsV, i)*gsl_vector_float_get(TR->fvFL_CurStrsV, i) );
-                    fTemp1  = gsl_vector_float_get(TR->fvFL_StaFric, i) - gsl_vector_float_get(TR->fvFL_DynFric, i)*gsl_vector_float_get(TR->fvFL_RefNrmStrs, i);
-                    fTempA += fTemp0*fTemp1;
+                    gsl_vector_float_set(fvFL_Temp0, MD->iv_OFFST2[MD->iRANK], fTemp0);
+                    MD->iv_OFFST2[MD->iRANK]  = MD->iv_OFFST2[MD->iRANK] +1; 
             }   }
-            MPI_Allreduce(MPI_IN_PLACE, &fTempA, 1 , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD); //total applied stressing rate
+            MPI_Allreduce(MPI_IN_PLACE, MD->iv_OFFST2, MD->iSIZE, MPI_INT, MPI_MAX, MPI_COMM_WORLD); 
+            for (i = 1; i < MD->iSIZE; i++)      {   MD->iv_STRT2[i]   = MD->iv_STRT2[i-1] + MD->iv_OFFST2[i-1];    } 
+            k = MD->iv_STRT2[MD->iSIZE-1] +MD->iv_OFFST2[MD->iSIZE-1];
+            MPI_Allgatherv(fvFL_Temp0->data, MD->iv_OFFST2[MD->iRANK], MPI_FLOAT,   fvFG_Temp2->data, MD->iv_OFFST2, MD->iv_STRT2, MPI_FLOAT,   MPI_COMM_WORLD);
+            gsl_sort_float(fvFG_Temp2->data, 1, k);
+            //fTempA = gsl_stats_float_trmean_from_sorted_data(0.1, fvFG_Temp2->data, 1, k);
+            fTempA = gsl_stats_float_median_from_sorted_data(fvFG_Temp2->data, 1, k);
             //----------------------------------------------------------------------------
             gsl_vector_float_scale(fvFG_Temp0, -1.0);                                       gsl_vector_float_scale(fvFG_Temp1, -1.0);    //it appears that I need to use the actual slip direction here...;instead of "backslip" i mean
             //----------------------------------------------------------------------------
@@ -1804,18 +1813,25 @@ void GetSlipLoadingAndWritePreRunData(struct MDstruct *MD, struct VTstruct *VT, 
             cblas_sgemv(CblasRowMajor,CblasTrans, MD->iBPNum, MD->ivF_OFFSET[MD->iRANK], 1.0, K->BF_OD->data, MD->ivF_OFFSET[MD->iRANK], fvBG_Temp5->data, 1, 0.0, fvFL_Temp0->data, 1);                                            
             gsl_vector_float_add(TR->fvFL_CurStrsV, fvFL_Temp0);
             //----------------------------------------------------------------------------
-            fTempB = 0;
+            for (i = 0; i < MD->iSIZE; i++)              {    MD->iv_STRT2[i]  = 0;           MD->iv_OFFST2[i] = 0;    }    
             for (i = 0; i < MD->ivF_OFFSET[MD->iRANK]; i++)     
-            {   if (TR->ivFL_StabT[i] == 1)      //add all induced stresses from patches that are NOT stable (use cond. stable and unstable)
+            {   if (TR->ivFL_StabT[i]  == 1)      //add all induced stresses from patches that are NOT stable (use cond. stable and unstable)
                 {   fTemp0  = sqrtf(gsl_vector_float_get(TR->fvFL_CurStrsH, i)*gsl_vector_float_get(TR->fvFL_CurStrsH, i) + gsl_vector_float_get(TR->fvFL_CurStrsV, i)*gsl_vector_float_get(TR->fvFL_CurStrsV, i) );
-                    fTemp1  = gsl_vector_float_get(TR->fvFL_StaFric, i) - gsl_vector_float_get(TR->fvFL_DynFric, i)*gsl_vector_float_get(TR->fvFL_RefNrmStrs, i);
-                    fTempB += fTemp0*fTemp1;            
+                    gsl_vector_float_set(fvFL_Temp0, MD->iv_OFFST2[MD->iRANK], fTemp0);
+                    MD->iv_OFFST2[MD->iRANK]  = MD->iv_OFFST2[MD->iRANK] +1; 
             }   }
-            MPI_Allreduce(MPI_IN_PLACE, &fTempB, 1 , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD); //total applied stressing rate
+            MPI_Allreduce(MPI_IN_PLACE, MD->iv_OFFST2, MD->iSIZE, MPI_INT, MPI_MAX, MPI_COMM_WORLD); 
+            for (i = 1; i < MD->iSIZE; i++)      {   MD->iv_STRT2[i]   = MD->iv_STRT2[i-1] + MD->iv_OFFST2[i-1];    } 
+            k = MD->iv_STRT2[MD->iSIZE-1] +MD->iv_OFFST2[MD->iSIZE-1];
+            MPI_Allgatherv(fvFL_Temp0->data, MD->iv_OFFST2[MD->iRANK], MPI_FLOAT,   fvFG_Temp2->data, MD->iv_OFFST2, MD->iv_STRT2, MPI_FLOAT,   MPI_COMM_WORLD);
+            gsl_sort_float(fvFG_Temp2->data, 1, k);
+            //fTempB = gsl_stats_float_trmean_from_sorted_data(0.1, fvFG_Temp2->data, 1, k);
+            fTempB = gsl_stats_float_median_from_sorted_data(fvFG_Temp2->data, 1, k);
             //----------------------------------------------------------------------------
             fTempC = fTempA/fTempB; //this is the actual scaling factor to be applied...
             gsl_vector_float_scale(TR->fvFL_CurStrsH, fTempC); //these are just temporary place holders (not currrent stress but stressing rate put in here) at the moment...
             gsl_vector_float_scale(TR->fvFL_CurStrsV, fTempC); //the values are actually stressing rates, will be assigned within the next few lines...
+            //----------------------------------------------------------------------------
         }
         gsl_vector_float_add(TR->fvFL_StrsRateStk, TR->fvFL_CurStrsH);          
         gsl_vector_float_add(TR->fvFL_StrsRateDip, TR->fvFL_CurStrsV);          
@@ -1827,7 +1843,7 @@ void GetSlipLoadingAndWritePreRunData(struct MDstruct *MD, struct VTstruct *VT, 
     }
     MPI_Allreduce(MPI_IN_PLACE, &fTempA, 1 , MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD); //total applied stressing rate
     fTempA /= (float)MD->iFPNum;            
-    if (MD->iRANK == 0)             {       fprintf(stdout,"Resulting average stressing-rate on faults (MPa/yr): %5.5f and per time step: %e\n",fTempA, (fTempA*MD->fIntSeisDeltT_InYrs));           }
+    if (MD->iRANK == 0)             {       fprintf(stdout,"Resulting average stressing-rate on faults (MPa/yr): %5.5f and per time step: %e; used factor:%5.5f\n",fTempA, (fTempA*MD->fIntSeisDeltT_InYrs), fTempC);           }
     //------------------------------------------------------------------------------------
     gsl_vector_float_scale(TR->fvFL_StrsRateStk, MD->fIntSeisDeltT_InYrs ); //reference stressing rate is now including the time step => only need to add that amount
     gsl_vector_float_scale(TR->fvFL_StrsRateDip, MD->fIntSeisDeltT_InYrs ); //when applicable (when stepping forward by one interseis. time step)
