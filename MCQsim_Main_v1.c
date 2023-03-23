@@ -20,10 +20,12 @@
 #define WRITESTFOFEACHELEMENT   0
 #define WRITEWITHANDWITHOUTPROP 0
 
-#define CUTDISTANCE             0.5//K-matrix related, for flagging bad (too close) elements
+#define CUTDISTANCE             1.0//K-matrix related, for flagging bad (too close) elements
 #define PRESTRESSFRACTION       0.95
 #define OVERSHOOTFRAC           1.25//dynamic overshoot factor
 #define FRAC2STARTRUPT          1.02//required excess to activate fault element coseismically
+#define INTERNALFRICTION        0.75
+#define INTERNALCOHESION        5.0
 #define LOADINGSTEPINTSEIS      0.02//this is fraction of a day => 0.02 == 1/50'th of a day ~30min
 #define LOADSTEPS_POW2          8 //suggested number of loading steps to take at once (pow_2 => value of 5 means 32 steps)
 #define MAXITERATION4BOUNDARY   200
@@ -58,7 +60,7 @@ struct MDstruct
 };
 //------------------------------------------------------------------
 struct TRstruct
-{   int                 *ivFL_StabT,                *ivFL_Ptch_t0,          *ivFL_Ptch_tDur,            *ivFL_Activated;
+{   int                 *ivFL_StabT,                *ivFL_Ptch_t0,          *ivFL_Ptch_tDur,            *ivFL_Activated,        *ivFL_Broken;
     int                 *ivFG_SegID_temp,           *ivFG_FltID_temp,       *ivFG_Flagged_temp;
     int                 *ivFG_V1_temp,              *ivFG_V2_temp,          *ivFG_V3_temp;
     float               *fvFG_CentE_temp,           *fvFG_CentN_temp,       *fvFG_CentZ_temp;
@@ -181,7 +183,7 @@ int main(int argc, char **argv)
     //------------------------------------------------------------------
     int         i,          j,          iTemp0,     iGlobPos,       iActElemNum,    iTpos0,         iTpos1,     iPrevEQtime;
     float       fTemp0,     fTemp1,     fTemp2,     fTemp3,         fTemp4,         fTemp5,         fTemp7,     fTemp8; 
-    float       fTestMag;
+    float       fTemp9,     fTestMag;
     char        cFile1_Out[512],        cFile2_Out[512],            cFile3_Out[512],                cAppend[512];
     clock_t     timer;
     //------------------------------------------------------------------------------------
@@ -455,6 +457,8 @@ int main(int argc, char **argv)
                     //------------------------------------------------
                     fTemp7 = (gsl_vector_float_get(TR.fvFL_CurFric, i) *-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i));
                     fTemp8 = (gsl_vector_float_get(TR.fvFL_ArrFric, i) *-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i));
+                    fTemp9 = (fabs(gsl_vector_float_get(TR.fvFL_CurStrsN, i)) < fabs(gsl_vector_float_get(TR.fvFL_RefNrmStrs, i))) ? gsl_vector_float_get(TR.fvFL_CurStrsN, i) : gsl_vector_float_get(TR.fvFL_RefNrmStrs, i);
+                    fTemp9 = INTERNALCOHESION + INTERNALFRICTION * -1.0*fTemp9;
                     //------------------------------------------------
                     if ((TR.ivFL_Activated[i] == 0) && (fTemp0 >= fTemp7*FRAC2STARTRUPT)) 
                     {   TR.ivFL_Activated[i]      = 1;  
@@ -465,38 +469,53 @@ int main(int argc, char **argv)
                     }   }             
                     //------------------------------------------------
                     fTemp1 = (fTemp0 - fTemp7); //amount of excess stress above current friction level
-                    fTemp2 = (fTemp0 - fTemp8); //amount of excess stress above arrest friction level     
+                    fTemp2 = (fTemp0 - fTemp8); //amount of excess stress above arrest friction level    
                     //------------------------------------------------
-                    if ((TR.ivFL_Activated[i] == 1) && (fTemp1 > 0.0) && (fTemp2 > gsl_vector_float_get(TR.fvFL_OverShotStress, i)))                  
-                    {   EQ.iStillOn          = 1;                       
-                        EQ.iMRFLgth          = EQ.iTotlRuptT;       
-                        TR.ivFL_Ptch_tDur[i] = EQ.iTotlRuptT - TR.ivFL_Ptch_t0[i] +1;   
+                    if (fTemp0 > fTemp9)       {       TR.ivFL_Broken[i] = 1;        }
+                    if (TR.ivFL_Broken[i] == 0)
+                    {   if ((TR.ivFL_Activated[i] == 1) && (fTemp1 > 0.0) && (fTemp2 > gsl_vector_float_get(TR.fvFL_OverShotStress, i)))                  
+                        {   EQ.iStillOn          = 1;                       
+                            EQ.iMRFLgth          = EQ.iTotlRuptT;       
+                            TR.ivFL_Ptch_tDur[i] = EQ.iTotlRuptT - TR.ivFL_Ptch_t0[i] +1;   
 
-                        fTemp5      = gsl_vector_float_get(TR.fvFL_MaxSlip, i);
+                            fTemp5      = gsl_vector_float_get(TR.fvFL_MaxSlip, i);
 
-                        fTemp2      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsH, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffStk, i); // slip amount to release excess horizontal shear stress
-                        fTemp2      = fTemp5 < fabs(fTemp2) ?   SIGN(fTemp2)*fTemp5 : fTemp2;
-                        gsl_vector_float_set(fvFL_Temp0, i, fTemp2); 
+                            fTemp2      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsH, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffStk, i); // slip amount to release excess horizontal shear stress
+                            fTemp2      = fTemp5 < fabs(fTemp2) ?   SIGN(fTemp2)*fTemp5 : fTemp2;
+                            gsl_vector_float_set(fvFL_Temp0, i, fTemp2); 
                                         
-                        fTemp3      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsV, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffDip, i); // slip amount to release excess vertical shear stress 
-                        fTemp3      = fTemp5  < fabs(fTemp3) ?  SIGN(fTemp3)*fTemp5 : fTemp3;
-                        gsl_vector_float_set(fvFL_Temp1, i, fTemp3);    
+                            fTemp3      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsV, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffDip, i); // slip amount to release excess vertical shear stress 
+                            fTemp3      = fTemp5  < fabs(fTemp3) ?  SIGN(fTemp3)*fTemp5 : fTemp3;
+                            gsl_vector_float_set(fvFL_Temp1, i, fTemp3);    
                                                                     
-                        fTemp4      = sqrtf(fTemp2*fTemp2 +fTemp3*fTemp3);      
-                        if (WRITESTFOFEACHELEMENT == 1)                                                                        
-                        {   gsl_matrix_float_set(EQ.fmSTF_slip, i, EQ.iTotlRuptT, fTemp4);          }                    
+                            fTemp4      = sqrtf(fTemp2*fTemp2 +fTemp3*fTemp3);      
+                            if (WRITESTFOFEACHELEMENT == 1)                                                                        
+                            {   gsl_matrix_float_set(EQ.fmSTF_slip, i, EQ.iTotlRuptT, fTemp4);          }                    
 
-                        if (gsl_vector_float_get(TR.fvFL_AccumSlp,i) == 0.0)                {   gsl_vector_float_set(TR.fvFL_TempRefFric, i, gsl_vector_float_get(TR.fvFL_CurFric, i));                 }
-                        fTemp5      = gsl_vector_float_get(TR.fvFL_AccumSlp, i) +fTemp4;
-                        gsl_vector_float_set(TR.fvFL_AccumSlp, i, fTemp5);
-                        fTemp5      = gsl_vector_float_get(EQ.fvM_MRFvals, EQ.iMRFLgth) + fTemp4 *gsl_vector_float_get(TR.fvFL_Area,i) *MD.fShearMod;
-                        gsl_vector_float_set(EQ.fvM_MRFvals, EQ.iMRFLgth, fTemp5);
+                            if (gsl_vector_float_get(TR.fvFL_AccumSlp,i) == 0.0)                {   gsl_vector_float_set(TR.fvFL_TempRefFric, i, gsl_vector_float_get(TR.fvFL_CurFric, i));                 }
+                            fTemp5      = gsl_vector_float_get(TR.fvFL_AccumSlp, i) +fTemp4;
+                            gsl_vector_float_set(TR.fvFL_AccumSlp, i, fTemp5);
+                            fTemp5      = gsl_vector_float_get(EQ.fvM_MRFvals, EQ.iMRFLgth) + fTemp4 *gsl_vector_float_get(TR.fvFL_Area,i) *MD.fShearMod;
+                            gsl_vector_float_set(EQ.fvM_MRFvals, EQ.iMRFLgth, fTemp5);
+                        }
+                        else //elment previously activated but without additional slip
+                        {   if (TR.ivFL_StabT[i] != 3)                  {   gsl_vector_float_set(TR.fvFL_AccumSlp, i, 0.0);         }
+                            gsl_vector_float_set(fvFL_Temp0, i, 0.0);
+                            gsl_vector_float_set(fvFL_Temp1, i, 0.0);  
+                        }   
                     }
-                    else //elment previously activated but without additional slip
-                    {   if (TR.ivFL_StabT[i] != 3)                  {   gsl_vector_float_set(TR.fvFL_AccumSlp, i, 0.0);         }
+                    else
+                    {   fTemp2      = (fTemp8/fTemp0) *gsl_vector_float_get(TR.fvFL_CurStrsH, i);
+                        fTemp3      = (fTemp8/fTemp0) *gsl_vector_float_get(TR.fvFL_CurStrsV, i);
+                        fTemp4      = gsl_vector_float_get(TR.fvFL_RefNrmStrs, i);                    
+                        gsl_vector_float_set(TR.fvFL_CurStrsH, i, fTemp2);
+                        gsl_vector_float_set(TR.fvFL_CurStrsV, i, fTemp3);
+                        gsl_vector_float_set(TR.fvFL_CurStrsN, i, fTemp4);                        
+                        if (TR.ivFL_StabT[i] != 3)                  {   gsl_vector_float_set(TR.fvFL_AccumSlp, i, 0.0);         }
                         gsl_vector_float_set(fvFL_Temp0, i, 0.0);
                         gsl_vector_float_set(fvFL_Temp1, i, 0.0);  
-                }   }
+                    }                  
+                }
                 if (EQ.iStillOn == 1)           
                 {   gsl_vector_float_add(EQ.fvL_EQslipH, fvFL_Temp0);           
                     gsl_vector_float_add(EQ.fvL_EQslipV, fvFL_Temp1);                           
@@ -558,7 +577,7 @@ int main(int argc, char **argv)
                 gsl_vector_float_set_zero(EQ.fvL_EQslipH);          gsl_vector_float_set_zero(EQ.fvL_EQslipV);          gsl_vector_float_set_zero(TR.fvFL_AccumSlp);        
                 gsl_vector_float_set_zero(fvFL_Temp2);              gsl_vector_float_set_zero(fvFL_Temp3);      
                 //------------------------------------                    
-                for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++)   {   TR.ivFL_Ptch_t0[i]   = 0;       TR.ivFL_Ptch_tDur[i]   = 0;     TR.ivFL_Activated[i] = 0;           }           
+                for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++)   {   TR.ivFL_Ptch_t0[i]   = 0;       TR.ivFL_Ptch_tDur[i]   = 0;     TR.ivFL_Activated[i] = 0;           TR.ivFL_Broken[i] = 0;          }           
                 EQ.iStillOn = 1;            EQ.iActFPNum = 0;       EQ.iMRFLgth = -1;               EQ.iTotlRuptT =-1;              EQ.iEndCntr   = 0;  
                  //------------------------------------------------------
                 for (i = 0; i < MD.ivF_OFFSET[MD.iRANK]; i++)               
@@ -604,6 +623,8 @@ int main(int argc, char **argv)
                         //------------------------------------------------
                         fTemp7 = (gsl_vector_float_get(TR.fvFL_CurFric, i) *-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i));
                         fTemp8 = (gsl_vector_float_get(TR.fvFL_ArrFric, i) *-1.0*gsl_vector_float_get(TR.fvFL_CurStrsN, i));
+                        fTemp9 = (fabs(gsl_vector_float_get(TR.fvFL_CurStrsN, i)) < fabs(gsl_vector_float_get(TR.fvFL_RefNrmStrs, i))) ? gsl_vector_float_get(TR.fvFL_CurStrsN, i) : gsl_vector_float_get(TR.fvFL_RefNrmStrs, i);
+                        fTemp9 = INTERNALCOHESION + INTERNALFRICTION * -1.0*fTemp9;
                         //------------------------------------------------
                         if ((TR.ivFL_Activated[i] == 0) && (fTemp0 >= fTemp7*FRAC2STARTRUPT)) 
                         {   TR.ivFL_Activated[i]      = 1;            
@@ -616,42 +637,56 @@ int main(int argc, char **argv)
                         fTemp1 = (fTemp0 - fTemp7); //amount of excess stress
                         fTemp2 = (fTemp0 - fTemp8);//amount of excess stress above arrest friction level   
                         //------------------------------------------------
-                        if ((TR.ivFL_Activated[i] == 1) && (fTemp1 > 0.0) && (fTemp2 > gsl_vector_float_get(TR.fvFL_OverShotStress, i)))   
-                        {   EQ.iStillOn          = 1;                       
-                            EQ.iMRFLgth          = EQ.iTotlRuptT;  
-                            TR.ivFL_Ptch_tDur[i] = EQ.iTotlRuptT - TR.ivFL_Ptch_t0[i] +1;     
+                        if (fTemp0 > fTemp9)       {       TR.ivFL_Broken[i] = 1;        }
+                        if (TR.ivFL_Broken[i] == 0)
+                        {   if ((TR.ivFL_Activated[i] == 1) && (fTemp1 > 0.0) && (fTemp2 > gsl_vector_float_get(TR.fvFL_OverShotStress, i)))   
+                            {   EQ.iStillOn          = 1;                       
+                                EQ.iMRFLgth          = EQ.iTotlRuptT;  
+                                TR.ivFL_Ptch_tDur[i] = EQ.iTotlRuptT - TR.ivFL_Ptch_t0[i] +1;     
                             
-                            fTemp5      = gsl_vector_float_get(TR.fvFL_MaxSlip, i);
+                                fTemp5      = gsl_vector_float_get(TR.fvFL_MaxSlip, i);
                                             
-                            gsl_vector_int_set(ivFL_Temp0, MD.iv_OFFST2[MD.iRANK], iGlobPos);   
-                            //------------------------------------------------  
-                            fTemp2      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsH, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffStk, i); // slip amount to release excess horizontal shear stress
-                            fTemp2      = fTemp5 < fabs(fTemp2) ?   SIGN(fTemp2)*fTemp5 : fTemp2;
-                            gsl_vector_float_set(fvFL_Temp2, i, fTemp2); 
-                            gsl_vector_float_set(fvFL_Temp0, MD.iv_OFFST2[MD.iRANK], fTemp2);      
+                                gsl_vector_int_set(ivFL_Temp0, MD.iv_OFFST2[MD.iRANK], iGlobPos);   
+                                //------------------------------------------------  
+                                fTemp2      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsH, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffStk, i); // slip amount to release excess horizontal shear stress
+                                fTemp2      = fTemp5 < fabs(fTemp2) ?   SIGN(fTemp2)*fTemp5 : fTemp2;
+                                gsl_vector_float_set(fvFL_Temp2, i, fTemp2); 
+                                gsl_vector_float_set(fvFL_Temp0, MD.iv_OFFST2[MD.iRANK], fTemp2);      
                             
-                            fTemp3      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsV, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffDip, i); // slip amount to release excess vertical shear stress 
-                            fTemp3      = fTemp5 < fabs(fTemp3) ?   SIGN(fTemp3)*fTemp5 : fTemp3; 
-                            gsl_vector_float_set(fvFL_Temp3, i, fTemp3);
-                            gsl_vector_float_set(fvFL_Temp1, MD.iv_OFFST2[MD.iRANK], fTemp3);
-                            //------------------------------------------------
-                            fTemp4      = sqrtf(fTemp2*fTemp2 +fTemp3*fTemp3);
-                            if ((WRITESTFOFEACHELEMENT == 1) && (fTestMag >= MD.fMinMag4Prop))
-                            {   gsl_matrix_float_set(EQ.fmSTF_slip, i, EQ.iTotlRuptT, fTemp4);          	}
+                                fTemp3      = -1.0*(fTemp1/fTemp0 *gsl_vector_float_get(TR.fvFL_CurStrsV, i)) / gsl_vector_float_get(TR.fvFL_SelfStiffDip, i); // slip amount to release excess vertical shear stress 
+                                fTemp3      = fTemp5 < fabs(fTemp3) ?   SIGN(fTemp3)*fTemp5 : fTemp3; 
+                                gsl_vector_float_set(fvFL_Temp3, i, fTemp3);
+                                gsl_vector_float_set(fvFL_Temp1, MD.iv_OFFST2[MD.iRANK], fTemp3);
+                                //------------------------------------------------
+                                fTemp4      = sqrtf(fTemp2*fTemp2 +fTemp3*fTemp3);
+                                if ((WRITESTFOFEACHELEMENT == 1) && (fTestMag >= MD.fMinMag4Prop))
+                                {   gsl_matrix_float_set(EQ.fmSTF_slip, i, EQ.iTotlRuptT, fTemp4);          	}
                             
-                            if (gsl_vector_float_get(TR.fvFL_AccumSlp,i) == 0.0)                {   gsl_vector_float_set(TR.fvFL_TempRefFric, i, gsl_vector_float_get(TR.fvFL_CurFric, i));                 }
-                            fTemp5      = gsl_vector_float_get(TR.fvFL_AccumSlp, i) +fTemp4;
-                            gsl_vector_float_set(TR.fvFL_AccumSlp, i, fTemp5);
-                            fTemp5      = gsl_vector_float_get(EQ.fvM_MRFvals, EQ.iMRFLgth) + fTemp4 *gsl_vector_float_get(TR.fvFL_Area,i) *MD.fShearMod;
-                            gsl_vector_float_set(EQ.fvM_MRFvals, EQ.iMRFLgth, fTemp5);  
-                            //------------------------------------------------      
-                            MD.iv_OFFST2[MD.iRANK] = MD.iv_OFFST2[MD.iRANK]+1;
-                        }   
-                        else
-                        {   if (TR.ivFL_StabT[i] != 3)                  {   gsl_vector_float_set(TR.fvFL_AccumSlp, i, 0.0);         }
-                            gsl_vector_float_set(fvFL_Temp2, i, 0.0);
-                            gsl_vector_float_set(fvFL_Temp3, i, 0.0);
+                                if (gsl_vector_float_get(TR.fvFL_AccumSlp,i) == 0.0)                {   gsl_vector_float_set(TR.fvFL_TempRefFric, i, gsl_vector_float_get(TR.fvFL_CurFric, i));                 }
+                                fTemp5      = gsl_vector_float_get(TR.fvFL_AccumSlp, i) +fTemp4;
+                                gsl_vector_float_set(TR.fvFL_AccumSlp, i, fTemp5);
+                                fTemp5      = gsl_vector_float_get(EQ.fvM_MRFvals, EQ.iMRFLgth) + fTemp4 *gsl_vector_float_get(TR.fvFL_Area,i) *MD.fShearMod;
+                                gsl_vector_float_set(EQ.fvM_MRFvals, EQ.iMRFLgth, fTemp5);  
+                                //------------------------------------------------      
+                                MD.iv_OFFST2[MD.iRANK] = MD.iv_OFFST2[MD.iRANK]+1;
+                            }   
+                            else
+                            {   if (TR.ivFL_StabT[i] != 3)                  {   gsl_vector_float_set(TR.fvFL_AccumSlp, i, 0.0);         }
+                                gsl_vector_float_set(fvFL_Temp2, i, 0.0);
+                                gsl_vector_float_set(fvFL_Temp3, i, 0.0);
+                            }
                         }
+                        else
+                        {   fTemp2      = (fTemp8/fTemp0) *gsl_vector_float_get(TR.fvFL_CurStrsH, i);
+                            fTemp3      = (fTemp8/fTemp0) *gsl_vector_float_get(TR.fvFL_CurStrsV, i);
+                            fTemp4      = gsl_vector_float_get(TR.fvFL_RefNrmStrs, i);                    
+                            gsl_vector_float_set(TR.fvFL_CurStrsH, i, fTemp2);
+                            gsl_vector_float_set(TR.fvFL_CurStrsV, i, fTemp3);
+                            gsl_vector_float_set(TR.fvFL_CurStrsN, i, fTemp4);                        
+                            if (TR.ivFL_StabT[i] != 3)                  {   gsl_vector_float_set(TR.fvFL_AccumSlp, i, 0.0);         }
+                            gsl_vector_float_set(fvFL_Temp0, i, 0.0);
+                            gsl_vector_float_set(fvFL_Temp1, i, 0.0);  
+                    }
                     }
                     //--------------------------------------------------------------------
                     MPI_Allreduce(MPI_IN_PLACE, MD.iv_OFFST2, MD.iSIZE, MPI_INT, MPI_MAX, MPI_COMM_WORLD); 
@@ -899,7 +934,8 @@ void InitializeVariables(struct MDstruct *MD, struct TRstruct *TR, struct VTstru
     TR->ivFL_StabT           = ( int *)  calloc(MD->ivF_OFFSET[MD->iRANK],   sizeof( int));     
     TR->ivFL_Activated       = ( int *)  calloc(MD->ivF_OFFSET[MD->iRANK],   sizeof( int));     
     TR->ivFL_Ptch_t0         = ( int *)  calloc(MD->ivF_OFFSET[MD->iRANK],   sizeof( int));
-    TR->ivFL_Ptch_tDur       = ( int *)  calloc(MD->ivF_OFFSET[MD->iRANK],   sizeof( int)); 
+    TR->ivFL_Ptch_tDur       = ( int *)  calloc(MD->ivF_OFFSET[MD->iRANK],   sizeof( int));
+    TR->ivFL_Broken          = ( int *)  calloc(MD->ivF_OFFSET[MD->iRANK],   sizeof( int));
     
     TR->ivFG_SegID_temp      = ( int *)  calloc(MD->iFPNum,   sizeof( int));    
     TR->ivFG_FltID_temp      = ( int *)  calloc(MD->iFPNum,   sizeof( int));
@@ -2180,6 +2216,7 @@ void ResetFaultParameter(struct MDstruct *MD, struct TRstruct *TR, gsl_rng *fRan
         TR->ivFL_Ptch_t0[i]        = 0;
         TR->ivFL_Ptch_tDur[i]      = 0;
         TR->ivFL_Activated[i]      = 0;
+        TR->ivFL_Broken[i]         = 0;
         //-----------------------------------------
         gsl_vector_float_set(TR->fvFL_CurFric,  i, gsl_vector_float_get(TR->fvFL_StaFric,    i));
         gsl_vector_float_set(TR->fvFL_CurStrsN, i, gsl_vector_float_get(TR->fvFL_RefNrmStrs, i));
@@ -2187,14 +2224,12 @@ void ResetFaultParameter(struct MDstruct *MD, struct TRstruct *TR, gsl_rng *fRan
         fTemp0 = sqrtf(gsl_vector_float_get(TR->fvFL_CurStrsH,i)*gsl_vector_float_get(TR->fvFL_CurStrsH,i) + gsl_vector_float_get(TR->fvFL_CurStrsV,i)*gsl_vector_float_get(TR->fvFL_CurStrsV,i) );
         fTemp1 = gsl_vector_float_get(TR->fvFL_CurFric,i)*-1.0*gsl_vector_float_get(TR->fvFL_CurStrsN,i);
         //-----------------------------------------
-        if (MD->iUsePSeis == 1)
-        {   if (fTemp0 > fTemp1)
-            {   fTemp1 = fTemp0/(-1.0*gsl_vector_float_get(TR->fvFL_CurStrsN,i));
-                gsl_vector_float_set(TR->fvFL_CurFric, i, fTemp1);
-                        
-                fTemp2 = fTemp1 - gsl_vector_float_get(TR->fvFL_StaFric, i);
-                gsl_vector_float_set(TR->fvFL_PSeis_T0_F,i, fTemp2);
-        }   }   
+        if ((MD->iUsePSeis == 1) && (fTemp0 > fTemp1))
+        {   fTemp2 = fTemp0/(-1.0*gsl_vector_float_get(TR->fvFL_CurStrsN,i));              
+            fTemp2 = (fTemp2 < INTERNALFRICTION) ? fTemp2 : INTERNALFRICTION;
+             gsl_vector_float_set(TR->fvFL_CurFric, i, fTemp2);
+            fTemp3 = fTemp2 - gsl_vector_float_get(TR->fvFL_StaFric, i);                    gsl_vector_float_set(TR->fvFL_PSeis_T0_F,i, fTemp3);
+        }   
     }
     return;
 }
