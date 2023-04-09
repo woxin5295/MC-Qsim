@@ -1,7 +1,0 @@
-module swap PrgEnv-cray PrgEnv-intel
-export GSL_FROM=cle7_intel2021.4.0
-module load gsl/2.6-intel21.4
-
-cc -DHAVE_INLINE -lgsl -lgslcblas -lm  -Wall    MCQsim_Main_v1.c   MCQsim_StrainHS_v1.c \
--o MCQsim_v1_intel
-
