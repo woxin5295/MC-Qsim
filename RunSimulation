@@ -1,1 +1,0 @@
-mpirun -n 7 ./MCQsim_v1_0 RunFile_example_ss.txt
