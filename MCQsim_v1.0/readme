@@ -1,0 +1,1 @@
+The code is going to change over time. This can mean that for example I/O data structures will change. We will use version numbers to group self-consistent packages of this software.
