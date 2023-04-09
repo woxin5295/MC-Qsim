@@ -1,0 +1,5 @@
+mpicc   MCQsim_Main_v1.c    MCQsim_StrainHS_v1.c   \
+-DHAVE_INLINE  -lgslcblas  -lgsl  -lm  -O3  -Wall  \
+-o  MCQsim_v1
+
+rm -r *.dSYM
