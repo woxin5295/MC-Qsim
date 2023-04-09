@@ -1,0 +1,1 @@
+this folder contains the C source files and simple compilation scripts. Make sure that MPI and GSL are accessible during compliation.
